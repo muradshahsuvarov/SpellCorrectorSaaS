@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "startBackEnd": "npm run --prefix ./back-end devStart",
+    "startFrontEnd": "npm run --prefix ./front-end start",
+    "startPipeline": "concurrently \"npm run startBackEnd\" \"npm run startFrontEnd\""
+  },
+  "dependencies": {
+    "concurrent": "^0.3.2",
+    "passport-google-oauth2": "^0.2.0"
+  }
+}

@@ -1,0 +1,57 @@
+
+
+
+POST http://localhost:5000/registration/register
+Content-Type: application/json
+
+{
+    "firstname": "Murad",
+    "lastname": "Shahsuvarov",
+    "username": "muradshahsuvarov@gmail.com",
+    "password": "Muradikov_21"
+}
+
+###
+POST http://localhost:5000/auth/authenticatelocal
+Content-Type: application/json
+
+{
+    "username": "muradshahsuvarov@gmail.com",
+    "password": "Muradikov_21"
+}
+
+### Log Out Endpoint
+DELETE http://localhost:5000/auth/logout
+
+
+### Google Authentication Endpoint
+GET http://localhost:5000/auth/authenticategoogle
+
+
+### Authenticated Profile Route
+GET http://localhost:5000/auth/profile
+
+### Home Page Route
+GET http://localhost:5000/auth/profile/home
+
+### Manage Users Route
+GET http://localhost:5000/auth/profile/manageusers
+
+### User SC Models Routes
+GET http://localhost:5000/auth/profile/usermodels
+
+### Admin SC Models Routes (Different functionalities and data)
+GET http://localhost:5000/auth/profile/adminmodels
+
+### Admin Analytics Data such as revenue, server overload, number of users, ...
+GET http://localhost:5000/auth/profile/adminanalytics
+
+### Admin SC Model Routes such as description, expended time on training, time of completion, ... 
+GET http://localhost:5000/auth/profile/sc_model_eps
+
+### Message Routes such as User Messages
+GET http://localhost:5000/auth/profile/messages
+
+
+### Followers Routes such as user followers, etc...
+GET http://localhost:5000/auth/profile/followers
