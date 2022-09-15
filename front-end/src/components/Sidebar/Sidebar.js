@@ -259,7 +259,7 @@ const Sidebar = (props) => {
             <NavItem className="active-pro active">
               <NavLink href="https://www.creative-tim.com/product/argon-dashboard-pro-react?ref=adr-admin-sidebar">
                 <i className="ni ni-spaceship" />
-                Upgrade to PRO
+                Subscriptions
               </NavLink>
             </NavItem>
           </Nav>

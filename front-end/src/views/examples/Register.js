@@ -224,8 +224,7 @@ const Register = () => {
               <Button
                 className="btn-neutral btn-icon"
                 color="default"
-                href="#pablo"
-                onClick={(e) => e.preventDefault()}
+                href="http://localhost:5000/auth/authenticategoogle"
               >
                 <span className="btn-inner--icon">
                   <img
