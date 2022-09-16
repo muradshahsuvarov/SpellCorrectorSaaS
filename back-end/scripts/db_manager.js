@@ -7,6 +7,19 @@ mongoose.connect("mongodb://localhost:27017/spell_corrector_db").then(() => {
 
 var Schema = mongoose.Schema;
 
+var account_verification_schema = new Schema({
+
+    firstname: { type: String, required: true },
+    lastname: { type: String, required: true },
+    email: { type: String, required: true },
+    password: { type: String, required: true },
+    token: { type: String, required: true },
+    verified: { type: Boolean, required: true },
+    created_at: { type: String, required: true},
+    updated_at: { type: String, required: false}
+    
+});
+
 var user_schema = new Schema({
 
     firstname: { type: String, required: true },
@@ -34,6 +47,8 @@ var model_schema = new Schema({
 
 var Users = mongoose.model('Users', user_schema, 'users');
 var Models = mongoose.model('Models', model_schema, 'models');
+var AccountVerifications = mongoose.model('AccountVerifications', account_verification_schema, 'account_verifications');
 
 module.exports.Users = Users;
 module.exports.Models = Models;
+module.exports.AccountVerifications = AccountVerifications;

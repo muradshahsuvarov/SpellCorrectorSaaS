@@ -1,13 +1,13 @@
 
 
 
-POST http://localhost:5000/registration/register
+POST http://localhost:5000/registration/request-user
 Content-Type: application/json
 
 {
     "firstname": "Murad",
     "lastname": "Shahsuvarov",
-    "username": "muradshahsuvarov@gmail.com",
+    "email": "muradshahsuvarov@gmail.com",
     "password": "Muradikov_21"
 }
 

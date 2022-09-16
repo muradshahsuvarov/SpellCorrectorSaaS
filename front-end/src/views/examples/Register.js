@@ -42,10 +42,14 @@ const Register = () => {
 
   const [emailState, setEmailState] = useState({ name: '', error: false, error_message: ''});
 
-  const [passStrengthState, setPassStrengthState] = useState('Very Weak')
-  const [passwordError, setPasswordError] = useState({ message: "", error: false })
-  const [firstPassState, setFirstPassState] = useState('')
-  const [secPassState, setSecPassState] = useState('')
+  const [passStrengthState, setPassStrengthState] = useState('Very Weak');
+  const [passwordError, setPasswordError] = useState({ message: "", error: false });
+  const [firstPassState, setFirstPassState] = useState('');
+  const [secPassState, setSecPassState] = useState('');
+
+
+  const [formErrorState, setFormErrorState] = useState(true);
+  const [privacyAcceptState, setPrivacyAcceptState] = useState(false);
 
   // Validate Email Format
   function validateEmail(email) 
@@ -122,6 +126,17 @@ const Register = () => {
         break;
     }
   }
+  
+  // Form Error
+  useEffect(() => {
+
+    if (firstNameState.error == true || lastNameState.error == true || emailState.error == true || passwordError.error == true || privacyAcceptState.valueOf() == false ) {
+      setFormErrorState(true);
+    }else{
+      setFormErrorState(false);
+    }
+
+  }, [firstNameState.error, lastNameState.error, emailState.error, passwordError.error, privacyAcceptState]);
 
   // First Name
   useEffect(() => {
@@ -204,6 +219,10 @@ const Register = () => {
     setFirstPassState(e.target.value);
   }
 
+  function checkBoxChange(e) {
+    setPrivacyAcceptState(e.target.checked);
+  }
+
   function secondPasswordChange(e) {
     setSecPassState(e.target.value);
   }
@@ -225,6 +244,7 @@ const Register = () => {
                 className="btn-neutral btn-icon"
                 color="default"
                 href="http://localhost:5000/auth/authenticategoogle"
+                onClick={(e) => e.preventDefault()}
               >
                 <span className="btn-inner--icon">
                   <img
@@ -349,6 +369,7 @@ const Register = () => {
                 <Col xs="12">
                   <div className="custom-control custom-control-alternative custom-checkbox">
                     <input
+                      onChange={checkBoxChange}
                       className="custom-control-input"
                       id="customCheckRegister"
                       type="checkbox"
@@ -368,7 +389,7 @@ const Register = () => {
                 </Col>
               </Row>
               <div className="text-center">
-                <Button className="mt-4" color="primary" type="button">
+                <Button className="mt-4" color="primary" disabled={formErrorState.valueOf()} type="button">
                   Create account
                 </Button>
               </div>
