@@ -43,7 +43,7 @@ const Register = () => {
   const [emailState, setEmailState] = useState({ name: '', error: false, error_message: ''});
 
   const [passStrengthState, setPassStrengthState] = useState('Very Weak');
-  const [passwordError, setPasswordError] = useState({ message: "", error: false });
+  const [passwordErrorState, setPasswordError] = useState({ message: "", error: false });
   const [firstPassState, setFirstPassState] = useState('');
   const [secPassState, setSecPassState] = useState('');
 
@@ -126,17 +126,51 @@ const Register = () => {
         break;
     }
   }
+
+  const [ responseState, setResponseState ] = useState({message: '', error: false});
+
+  async function sendRequest(url, method, body) {
+    
+    const options = {
+        method: method,
+        headers: new Headers({'content-type': 'application/json'}),
+        mode: 'cors'
+    };
+
+    options.body = JSON.stringify(body);
+
+    return await fetch(url, options);
+}
+
+  async function createAccount(e) {
+
+    let account_creation = await sendRequest('http://localhost:5000/registration/request-user', 'POST',
+    { 
+
+      firstname: firstNameState.name,
+      lastname: lastNameState.name,
+      email: emailState.name,
+      password: firstPassState,
+      
+     });
+    
+     let account_creation_data = await account_creation.text();
+
+     console.log({message: JSON.parse(account_creation_data).message, error: JSON.parse(account_creation_data).error});
+     // Show another card upon receival of a positive feedback
+     setResponseState({message: JSON.parse(account_creation_data).message, error: JSON.parse(account_creation_data).error})
+  }
   
   // Form Error
   useEffect(() => {
 
-    if (firstNameState.error == true || lastNameState.error == true || emailState.error == true || passwordError.error == true || privacyAcceptState.valueOf() == false ) {
+    if (firstNameState.error == true || lastNameState.error == true || emailState.error == true || passwordErrorState.error == true || privacyAcceptState.valueOf() == false ) {
       setFormErrorState(true);
     }else{
       setFormErrorState(false);
     }
 
-  }, [firstNameState.error, lastNameState.error, emailState.error, passwordError.error, privacyAcceptState]);
+  }, [firstNameState.error, lastNameState.error, emailState.error, passwordErrorState.error, privacyAcceptState]);
 
   // First Name
   useEffect(() => {
@@ -236,6 +270,17 @@ const Register = () => {
       <Col lg="6" md="8">
         <Card className="bg-secondary shadow border-0">
           <CardHeader className="bg-transparent pb-5">
+            { responseState.message && responseState.error == false ?           
+              <div className="text-center text-muted mb-4">
+              <small>Check your email</small>
+              </div>            
+            :
+            responseState.message && responseState.error == true ?
+              <div className="text-center text-muted mb-4">
+              <small>User creation failure</small>
+              </div>
+            :     
+            <>
             <div className="text-muted text-center mt-2 mb-4">
               <small>Sign up with</small>
             </div>
@@ -258,9 +303,23 @@ const Register = () => {
                 <span className="btn-inner--text">Google</span>
               </Button>
             </div>
+            </>
+            
+            }
           </CardHeader>
           <CardBody className="px-lg-5 py-lg-5">
-            <div className="text-center text-muted mb-4">
+            { responseState.message && responseState.error == false ? 
+              <div className="text-center text-muted mb-4">
+              <big>{ responseState.message }</big>
+              </div>
+              :
+              responseState.message && responseState.error == true ?
+              <div className="text-center text-muted mb-4">
+              <big>{ responseState.message }</big>
+              </div>
+              :
+              <>
+               <div className="text-center text-muted mb-4">
               <small>Or sign up with credentials</small>
             </div>
             <Form role="form">
@@ -352,7 +411,7 @@ const Register = () => {
                   />
                 </InputGroup>
               </FormGroup>
-              { passwordError.error == false ?
+              { passwordErrorState.error == false ?
               <div className="text-muted font-italic">
                 <small>
                   Password Strength:{" "}
@@ -361,7 +420,7 @@ const Register = () => {
               </div> : 
               <div className="text-muted font-italic">
                 <small>
-                  <span className="text-danger font-weight-700">{passwordError.message}</span>
+                  <span className="text-danger font-weight-700">{passwordErrorState.message}</span>
                 </small>
               </div> }
 
@@ -389,11 +448,13 @@ const Register = () => {
                 </Col>
               </Row>
               <div className="text-center">
-                <Button className="mt-4" color="primary" disabled={formErrorState.valueOf()} type="button">
+                <Button className="mt-4" color="primary" onClick={createAccount} disabled={formErrorState.valueOf()} type="button">
                   Create account
                 </Button>
               </div>
             </Form>
+              </>
+            }
           </CardBody>
         </Card>
       </Col>

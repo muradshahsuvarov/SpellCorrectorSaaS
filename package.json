@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "startBackEnd": "npm run --prefix ./back-end devStart",
+    "startBackEnd": "npm run --prefix ./back-end startDev",
     "startFrontEnd": "npm run --prefix ./front-end start",
     "startPipeline": "concurrently \"npm run startBackEnd\" \"npm run startFrontEnd\""
   },

@@ -14,7 +14,7 @@ function initialize(passport) {
         const user = db_manager.Users.findOne({"username": username}).then(async (auth_user) => {
 
             if (!auth_user) {
-                return done(null, false, { message: 'No user with that username'});
+                return done(null, false, { message: 'No user with that username', error: true });
             }
     
             try {
@@ -24,7 +24,7 @@ function initialize(passport) {
         
                     if (error) throw error;
                     if (!result) {
-                        return done(null, false, { message: 'Password incorrect'}); // first_arg: Error, second_arg: User, third_arg: return body properties
+                        return done(null, false, { message: 'Password incorrect', error: true }); // first_arg: Error, second_arg: User, third_arg: return body properties
                     }
                     
                     // TODO: Authenticate user with passport API
@@ -32,7 +32,7 @@ function initialize(passport) {
 
                     console.log(successfull_auth);
                     
-                    return done(null, auth_user); // first_arg: Error, second_arg: User
+                    return done(null, auth_user, { message: `User ${username} has been successfully authenticated.`, error: false }); // first_arg: Error, second_arg: User, third: Message
                 });
                 
             } catch (err) {

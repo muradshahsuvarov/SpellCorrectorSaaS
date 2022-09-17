@@ -14,8 +14,10 @@ router.get('/', (req, res, next) => {
 });
 
 router.post('/authenticatelocal', passport.authenticate('local', {
-    successRedirect: '/',
-    failureRedirect: '/'
+    successMessage: { message: "User has been successfully authenticated", error: false },
+    failureMessage: { message: "User has not been authenticated", error: true },
+    successRedirect: 'http://localhost:3000/auth/profile/home',
+    failureRedirect: 'http://localhost:3000/auth/login',
 }));
 
 
@@ -35,12 +37,12 @@ router.delete('/logout', (req, res, next) => {
             if (err) {
                 throw err;
             }
-            console.log(`User ${user.username} has been successfully logged out`);
-            res.status(200).send(`User ${user.username} has been successfully logged out`);
+            console.log({ message: `User ${user.username} has been successfully logged out`, error: false });
+            res.status(200).json({ message: `User ${user.username} has been successfully logged out`, error: false });
         });
     }else{
         console.log('No user to log out off the system');
-        res.status(401).send('No user to log out off the system');
+        res.status(401).json({ message: 'No user to log out off the system', error: true });
     }
 });
 

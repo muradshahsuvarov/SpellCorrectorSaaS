@@ -1,27 +1,16 @@
 const router = require('express').Router();
-const { date } = require('joi');
 const db_manager = require('../scripts/db_manager');
 const Joi = require('joi');
-const { JSONCookie } = require('cookie-parser');
 const bcrypt = require('bcrypt');
 var randomtoken = require('rand-token');
 const sendemail = require('../scripts/sendemail');
-const nodemailer = require('nodemailer');
-const cookie_parser = require('cookie-parser');
-const express = require('express');
 
-
-
-router.use(cookie_parser());
-router.use(express.urlencoded({ extended: false }));
-router.use(express.json());
 
 router.get('/', (req, res, next) => {
-    res.send('Registration Endpoints');
+    res.json({ message: 'Registration Endpoints'});
 });
 
 router.post('/request-user', async (req, res, next) => {
-
     
     const target_email = req.body.email;
     const firstname = req.body.firstname;
