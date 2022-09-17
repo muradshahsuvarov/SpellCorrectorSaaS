@@ -19,6 +19,7 @@
 
 import { useRef, useEffect, useState } from 'react'
 import { useLocation } from "react-router-dom"
+import { SpinnerCircular } from 'spinners-react'
 
 // reactstrap components
 import {
@@ -171,8 +172,11 @@ async function verifyAccount(_token) {
   }
 
   const [ responseState, setResponseState ] = useState({message: '', error: false});
+  const [ showSpinnerState, setShowSpinnerState ] = useState(false);
 
   async function createAccount(e) {
+
+    setShowSpinnerState(true);
 
     let account_creation = await sendRequest('http://localhost:5000/registration/request-user', 'POST',
     { 
@@ -189,6 +193,8 @@ async function verifyAccount(_token) {
      console.log({message: JSON.parse(account_creation_data).message, error: JSON.parse(account_creation_data).error});
      // Show another card upon receival of a positive feedback
      setResponseState({message: JSON.parse(account_creation_data).message, error: JSON.parse(account_creation_data).error})
+
+     setShowSpinnerState(false);
   }
   
   // Form Error
@@ -489,7 +495,13 @@ async function verifyAccount(_token) {
               </Row>
               <div className="text-center">
                 <Button className="mt-4" color="primary" onClick={createAccount} disabled={formErrorState.valueOf()} type="button">
-                  Create account
+                  { showSpinnerState === true 
+                    ? 
+                    <SpinnerCircular size="10%" />
+                    :
+                    <>Create account</>
+                  }
+                  
                 </Button>
               </div>
             </Form>

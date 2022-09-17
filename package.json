@@ -6,6 +6,7 @@
   },
   "dependencies": {
     "concurrent": "^0.3.2",
-    "passport-google-oauth2": "^0.2.0"
+    "passport-google-oauth2": "^0.2.0",
+    "spinners-react": "^1.0.7"
   }
 }
