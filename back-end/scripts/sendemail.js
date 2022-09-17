@@ -19,7 +19,7 @@ async function sendEmail(email, token) {
         to: email,
         subject: 'Account Verification - spellyy.com',
         html: '<p>You requested account verification, kindly use the link below to verify your account.<br/><br/>' +
-         '\n<a href="http://localhost:5000/registration/verify-email/' + token + '">Verify Account</a></p><p><br/><br/>Don\'t respond to this email</p>'
+         '\n<a href="http://localhost:3000/auth/register?token=' + token + '">Verify Account</a></p><p><br/><br/>Don\'t respond to this email</p>'
 
     };
 

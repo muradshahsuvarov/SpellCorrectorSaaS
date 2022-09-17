@@ -106,9 +106,9 @@ router.post('/request-user', async (req, res, next) => {
 
 });
 
-router.get('/verify-email/:token', async (req, res, next) => {
+router.post('/verify-email', async (req, res, next) => {
 
-    const token = req.params.token;
+    const token = req.body.token;
 
     let account_verification_user = await db_manager.AccountVerifications.findOne({ token: token });
     

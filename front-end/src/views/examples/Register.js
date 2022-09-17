@@ -18,6 +18,7 @@
 
 
 import { useRef, useEffect, useState } from 'react'
+import { useLocation } from "react-router-dom"
 
 // reactstrap components
 import {
@@ -36,6 +37,48 @@ import {
 } from "reactstrap";
 
 const Register = () => {
+
+
+  async function sendRequest(url, method, body) {
+    
+    const options = {
+        method: method,
+        headers: new Headers({'content-type': 'application/json'}),
+        mode: 'cors'
+    };
+
+    options.body = JSON.stringify(body);
+
+    return await fetch(url, options);
+}
+
+async function verifyAccount(_token) {
+
+  let account_verification = await sendRequest('http://localhost:5000/registration/verify-email', 'POST',
+  { 
+      token: _token
+  });
+    
+  let account_creation_data = await account_verification.text();
+
+  console.log({message: JSON.parse(account_creation_data).message, error: JSON.parse(account_creation_data).error});      
+  
+  setAccountVerifyState({message: JSON.parse(account_creation_data).message, error: JSON.parse(account_creation_data).error});
+}
+
+  const location = useLocation()
+  const params = new URLSearchParams(location.search)
+  const url_token = params.get("token");
+
+  const [accountVerifyState, setAccountVerifyState] = useState({ message: '', error: false });
+
+  // To send a request at the DOM mount stage, otherwise the request will be sent 3 times: { DOM MOUNT, DOM UPDATE, DOM UNMOUNT }
+  useEffect(()=>{
+    if (url_token) {
+      verifyAccount(url_token);
+    }
+  }, []);
+
 
   const [firstNameState, setFirstNameState] = useState({ name: '', error: false, error_message: ''});
   const [lastNameState, setLastNameState] = useState({ name: '', error: false, error_message: ''});
@@ -128,19 +171,6 @@ const Register = () => {
   }
 
   const [ responseState, setResponseState ] = useState({message: '', error: false});
-
-  async function sendRequest(url, method, body) {
-    
-    const options = {
-        method: method,
-        headers: new Headers({'content-type': 'application/json'}),
-        mode: 'cors'
-    };
-
-    options.body = JSON.stringify(body);
-
-    return await fetch(url, options);
-}
 
   async function createAccount(e) {
 
@@ -279,7 +309,12 @@ const Register = () => {
               <div className="text-center text-muted mb-4">
               <small>User creation failure</small>
               </div>
-            :     
+            :
+            accountVerifyState.message && accountVerifyState.error == false ?
+            <div className="text-center text-muted mb-4">
+              <small>Account Verification</small>
+              </div>
+            :
             <>
             <div className="text-muted text-center mt-2 mb-4">
               <small>Sign up with</small>
@@ -317,6 +352,11 @@ const Register = () => {
               <div className="text-center text-muted mb-4">
               <big>{ responseState.message }</big>
               </div>
+              :
+              accountVerifyState.message && accountVerifyState.error == false ?
+              <div className="text-center text-muted mb-4">
+                <big>{ accountVerifyState.message }</big>
+                </div>
               :
               <>
                <div className="text-center text-muted mb-4">
