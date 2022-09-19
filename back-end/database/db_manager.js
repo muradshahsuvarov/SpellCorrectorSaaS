@@ -1,7 +1,9 @@
 const mongoose = require('mongoose');
 
+require('dotenv').config();
 
-mongoose.connect("mongodb://localhost:27017/spell_corrector_db").then(() => {
+
+mongoose.connect(process.env.DB_CONNECTION_STRING).then(() => {
     console.log('Connected to mongodb');
 })
 
@@ -25,11 +27,12 @@ var user_schema = new Schema({
     firstname: { type: String, required: true },
     lastname: { type: String, required: true },
     username: { type: String, required: true },
-    password: { type: String, required: true },
+    password: { type: String, required: false },
     description: { type: String, required: false },
     is_admin: { type: Boolean, required: true },
     profile_picture: {type: String, required: false },
-    account_creation_datetime: {type: String, required: false }
+    account_creation_datetime: {type: String, required: false },
+    google_id: { type: String, required: false }
 
 });
 

@@ -5,6 +5,7 @@
     "startPipeline": "concurrently \"npm run startBackEnd\" \"npm run startFrontEnd\""
   },
   "dependencies": {
+    "axios": "^0.27.2",
     "concurrent": "^0.3.2",
     "passport-google-oauth2": "^0.2.0",
     "spinners-react": "^1.0.7"

@@ -32,7 +32,73 @@ import {
   Col
 } from "reactstrap";
 
+
+import { useEffect, useState } from 'react';
+
+import { SpinnerCircular } from 'spinners-react'
+
+import { SendRequest, GetAuthenticatedUser } from 'requests/requests'
+import { useHistory } from "react-router-dom";
+
 const Login = () => {
+
+  // React Hooks
+
+  const history = useHistory();
+  const [ emailState, changeEmailState ] = useState('');
+  const [ passwordState, changePasswordState ] = useState('');
+  const [ responseState, setResponseState ] = useState({ message: '', error: false });
+  const [ showSpinnerState, setShowSpinnerState ] = useState(false);
+
+  // Redirect user if he is authenticated. Execute on DOM Mount 1 times, [] react dependency list means this
+  useEffect(() => {
+
+    async function RedirectIfUserIsAuthenticated() {
+
+      let user_is_authenticated = await GetAuthenticatedUser();
+      if (JSON.parse(user_is_authenticated).error === false) {
+        history.push('/admin/index');
+      }
+    }
+
+    RedirectIfUserIsAuthenticated();
+  }, []);
+  
+
+  // Business Functions
+
+  function emailChange(e) {
+    changeEmailState(e.target.value);
+  }
+
+  function passwordChange(e) {
+    changePasswordState(e.target.value);
+  }
+
+
+  async function loginAccount(e) {
+
+    setShowSpinnerState(true);
+
+    let account_authentication = await SendRequest('http://localhost:5000/auth/authenticatelocal', 'POST',
+    { 
+      username: emailState,
+      password: passwordState
+        
+    });
+      
+    let account_authentication_data = await account_authentication.text();
+  
+    setResponseState({message: JSON.parse(account_authentication_data).message, error: JSON.parse(account_authentication_data).error});
+
+    setShowSpinnerState(false);
+
+    if (responseState.error === false) {
+      history.push('/admin/index');
+    }
+
+  }
+
   return (
     <>
       <Col lg="5" md="7">
@@ -45,8 +111,7 @@ const Login = () => {
               <Button
                 className="btn-neutral btn-icon"
                 color="default"
-                href="#pablo"
-                onClick={(e) => e.preventDefault()}
+                href="http://localhost:5000/auth/authenticategoogle"
               >
                 <span className="btn-inner--icon">
                   <img
@@ -63,7 +128,7 @@ const Login = () => {
           </CardHeader>
           <CardBody className="px-lg-5 py-lg-5">
             <div className="text-center text-muted mb-4">
-              <small>Or sign in with credentials</small>
+              { responseState.error === false ? <small>Or sign in with credentials</small> : <small>{responseState.message}</small>}
             </div>
             <Form role="form">
               <FormGroup className="mb-3">
@@ -74,6 +139,7 @@ const Login = () => {
                     </InputGroupText>
                   </InputGroupAddon>
                   <Input
+                    onChange={emailChange}
                     placeholder="Email"
                     type="email"
                     autoComplete="new-email"
@@ -88,6 +154,7 @@ const Login = () => {
                     </InputGroupText>
                   </InputGroupAddon>
                   <Input
+                    onChange={passwordChange}
                     placeholder="Password"
                     type="password"
                     autoComplete="new-password"
@@ -108,8 +175,13 @@ const Login = () => {
                 </label>
               </div>
               <div className="text-center">
-                <Button className="my-4" color="primary" type="button">
-                  Sign in
+                <Button className="my-4" color="primary" type="button" onClick={loginAccount}>
+                { showSpinnerState === true 
+                    ? 
+                    <SpinnerCircular size="10%" />
+                    :
+                    <>Sign in</>
+                }   
                 </Button>
               </div>
             </Form>

@@ -15,7 +15,7 @@ function checkAuthenticated(req, res, next) {
     if (req.isAuthenticated()) {
         return next();
     }
-    return res.send('Not Authenticated');
+    return res.status(403).json({ message: 'Not Authenticated', error: true});
 }
 
 // Middleware which checks a user to be an admin
@@ -23,11 +23,11 @@ function checkIsAdmin(req, res, next) {
     if (req.user.is_admin == true) {
         return next();
     }
-    return res.status(404).send("Unauthorized"); 
+    return res.status(403).json({ message: 'Unauthorized', error: true}); 
 }
 
 router.get('/', checkAuthenticated, (req, res, next) => {
-    res.send('Profile Endpoints');
+    return res.status(200).json({ message: 'Profile Endpoints', error: false}); 
 });
 
 router.use('/home', checkAuthenticated, home);

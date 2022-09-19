@@ -1,9 +1,9 @@
 const router = require('express').Router();
-const db_manager = require('../scripts/db_manager');
+const db_manager = require('../database/db_manager');
 const Joi = require('joi');
 const bcrypt = require('bcrypt');
 var randomtoken = require('rand-token');
-const sendemail = require('../scripts/sendemail');
+const sendemail = require('../emailing_services/sendemail');
 
 
 router.get('/', (req, res, next) => {
@@ -139,7 +139,8 @@ router.post('/verify-email', async (req, res, next) => {
         description: "",
         is_admin: false,
         profile_picture: "",
-        account_creation_datetime: account_creation_datetime
+        account_creation_datetime: account_creation_datetime,
+        google_id: ''
     };
 
     var user_joi_schema = new Joi.object({
@@ -150,7 +151,8 @@ router.post('/verify-email', async (req, res, next) => {
         description: Joi.string().min(0).max(1000),
         is_admin: Joi.boolean().required(),
         profile_picture: Joi.string().min(0).max(100),
-        account_creation_datetime: Joi.string().min(19).max(19).required()
+        account_creation_datetime: Joi.string().min(19).max(19).required(),
+        google_id: Joi.string().min(0).max(200)
     });
 
     const { error } = user_joi_schema.validate(user_object);
@@ -169,7 +171,8 @@ router.post('/verify-email', async (req, res, next) => {
         description: user_object.description, 
         is_admin: user_object.is_admin, 
         profile_picture: user_object.profile_picture, 
-        account_creation_datetime: user_object.account_creation_datetime 
+        account_creation_datetime: user_object.account_creation_datetime,
+        google_id: user_object.google_id
 
     });
 
