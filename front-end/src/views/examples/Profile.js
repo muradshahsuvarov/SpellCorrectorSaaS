@@ -31,8 +31,29 @@ import {
 } from "reactstrap";
 // core components
 import UserHeader from "components/Headers/UserHeader.js";
+import { GetAuthenticatedUser } from 'requests/requests'
+import { useEffect } from "react";
+import { useHistory } from "react-router-dom";
 
 const Profile = () => {
+
+  const history = useHistory();
+
+  useEffect(() => {
+
+    async function RedirectIfUserIsAuthenticated() {
+
+      let user_is_authenticated = await GetAuthenticatedUser();
+      if (JSON.parse(user_is_authenticated).error === true) {
+        history.push('/auth/index');
+        return;
+      }
+    }
+
+    RedirectIfUserIsAuthenticated();
+  }, []);
+
+
   return (
     <>
       <UserHeader />

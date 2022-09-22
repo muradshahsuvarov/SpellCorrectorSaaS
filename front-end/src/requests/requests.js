@@ -18,7 +18,30 @@ async function GetAuthenticatedUser() {
     let account_authentication_data = await account_authentication.text();
 
     return account_authentication_data;
-
+  
 }
 
-export { SendRequest, GetAuthenticatedUser }
+async function loginUser(email, password) {
+
+    let account_authentication = await SendRequest('http://localhost:5000/auth/authenticatelocal', 'POST',
+    { 
+      username: email,
+      password: password
+        
+    });
+      
+    let account_authentication_data = await account_authentication.text();
+
+    return account_authentication_data;
+}
+
+async function logoutUser(e) {
+
+    let account_authentication = await SendRequest('http://localhost:5000/auth/logout', 'DELETE');
+    
+    let account_authentication_data = await account_authentication.text();
+
+    return account_authentication_data; 
+}
+
+export { SendRequest, GetAuthenticatedUser, loginUser ,logoutUser }

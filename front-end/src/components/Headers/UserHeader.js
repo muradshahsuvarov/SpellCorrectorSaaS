@@ -41,7 +41,7 @@ const UserHeader = () => {
               <h1 className="display-2 text-white">Hello Jesse</h1>
               <p className="text-white mt-0 mb-5">
                 This is your profile page. You can see the progress you've made
-                with your work and manage your projects or assigned tasks
+                with your work and manage your models
               </p>
               <Button
                 color="info"

@@ -15,7 +15,7 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 // node.js library that concatenates classes (strings)
 import classnames from "classnames";
 // javascipt plugin for creating charts
@@ -48,9 +48,30 @@ import {
 
 import Header from "components/Headers/Header.js";
 
+import { GetAuthenticatedUser } from 'requests/requests'
+import { useHistory } from "react-router-dom";
+
 const Index = (props) => {
+
   const [activeNav, setActiveNav] = useState(1);
   const [chartExample1Data, setChartExample1Data] = useState("data1");
+
+
+  const history = useHistory();
+
+  useEffect(() => {
+
+    async function RedirectIfUserIsAuthenticated() {
+
+      let user_is_authenticated = await GetAuthenticatedUser();
+      if (JSON.parse(user_is_authenticated).error === true) {
+        history.push('/auth/index');
+        return;
+      }
+    }
+
+    RedirectIfUserIsAuthenticated();
+  }, []);
 
   if (window.Chart) {
     parseOptions(Chart, chartOptions());
@@ -61,6 +82,7 @@ const Index = (props) => {
     setActiveNav(index);
     setChartExample1Data("data" + index);
   };
+
   return (
     <>
       <Header />

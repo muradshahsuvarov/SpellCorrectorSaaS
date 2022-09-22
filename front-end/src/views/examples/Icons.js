@@ -15,7 +15,7 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 // react component that copies the given text inside your clipboard
 import { CopyToClipboard } from "react-copy-to-clipboard";
 // reactstrap components
@@ -31,8 +31,30 @@ import {
 // core components
 import Header from "components/Headers/Header.js";
 
+import { GetAuthenticatedUser } from 'requests/requests'
+import { useHistory } from "react-router-dom";
+
 const Icons = () => {
+
   const [copiedText, setCopiedText] = useState();
+
+  const history = useHistory();
+
+  useEffect(() => {
+
+    async function RedirectIfUserIsAuthenticated() {
+
+      let user_is_authenticated = await GetAuthenticatedUser();
+      if (JSON.parse(user_is_authenticated).error === true) {
+        history.push('/auth/index');
+        return;
+      }
+    }
+
+    RedirectIfUserIsAuthenticated();
+  }, []);
+
+
   return (
     <>
       <Header />

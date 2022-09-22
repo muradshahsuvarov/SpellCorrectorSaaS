@@ -23,7 +23,29 @@ import { Card, Container, Row } from "reactstrap";
 // core components
 import Header from "components/Headers/Header.js";
 
+import { GetAuthenticatedUser } from 'requests/requests'
+import { useEffect } from "react";
+import { useHistory } from "react-router-dom";
+
 const MapWrapper = () => {
+
+  const history = useHistory();
+
+  useEffect(() => {
+
+    async function RedirectIfUserIsAuthenticated() {
+
+      let user_is_authenticated = await GetAuthenticatedUser();
+      if (JSON.parse(user_is_authenticated).error === true) {
+        history.push('/auth/index');
+        return;
+      }
+    }
+
+    RedirectIfUserIsAuthenticated();
+  }, []);
+
+
   const mapRef = React.useRef(null);
   React.useEffect(() => {
     let google = window.google;

@@ -25,8 +25,10 @@ import AdminFooter from "components/Footers/AdminFooter.js";
 import Sidebar from "components/Sidebar/Sidebar.js";
 
 import routes from "routes.js";
+import navbarroutes from "navbar-routes.js"
 
 const Admin = (props) => {
+  
   const mainContent = React.useRef(null);
   const location = useLocation();
 
@@ -63,15 +65,14 @@ const Admin = (props) => {
     }
     return "Brand";
   };
-
   return (
     <>
       <Sidebar
         {...props}
-        routes={routes}
+        routes={navbarroutes}
         logo={{
           innerLink: "/admin/index",
-          imgSrc: require("../assets/img/brand/argon-react.png"),
+          imgSrc: require("../assets/img/brand/spelly-icon.png"),
           imgAlt: "..."
         }}
       />

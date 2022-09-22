@@ -17,7 +17,7 @@
 */
 
 
-import { useRef, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation } from "react-router-dom"
 import { SpinnerCircular } from 'spinners-react'
 
@@ -37,7 +37,28 @@ import {
   Col
 } from "reactstrap";
 
+import { GetAuthenticatedUser } from 'requests/requests';
+import { useHistory } from "react-router-dom";
+
 const Register = () => {
+
+  // Redirect user if he is authenticated. Execute on DOM Mount 1 time, [] react dependency list means this
+  
+  const history = useHistory();
+
+  useEffect(() => {
+
+    async function RedirectIfUserIsAuthenticated() {
+
+      let user_is_authenticated = await GetAuthenticatedUser();
+      if (JSON.parse(user_is_authenticated).error === false) {
+        history.push('/admin/index');
+      }
+    }
+
+    RedirectIfUserIsAuthenticated();
+  }, []);
+  
 
 
   async function sendRequest(url, method, body) {

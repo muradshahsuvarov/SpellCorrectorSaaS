@@ -37,7 +37,7 @@ import { useEffect, useState } from 'react';
 
 import { SpinnerCircular } from 'spinners-react'
 
-import { SendRequest, GetAuthenticatedUser } from 'requests/requests'
+import { GetAuthenticatedUser, loginUser } from 'requests/requests'
 import { useHistory } from "react-router-dom";
 
 const Login = () => {
@@ -50,7 +50,8 @@ const Login = () => {
   const [ responseState, setResponseState ] = useState({ message: '', error: false });
   const [ showSpinnerState, setShowSpinnerState ] = useState(false);
 
-  // Redirect user if he is authenticated. Execute on DOM Mount 1 times, [] react dependency list means this
+  // Redirect user if he is authenticated. Execute on DOM Mount 1 time, [] react dependency list means this
+  
   useEffect(() => {
 
     async function RedirectIfUserIsAuthenticated() {
@@ -75,27 +76,19 @@ const Login = () => {
     changePasswordState(e.target.value);
   }
 
-
   async function loginAccount(e) {
-
+    
     setShowSpinnerState(true);
 
-    let account_authentication = await SendRequest('http://localhost:5000/auth/authenticatelocal', 'POST',
-    { 
-      username: emailState,
-      password: passwordState
-        
-    });
-      
-    let account_authentication_data = await account_authentication.text();
-  
+    let account_authentication_data = await loginUser(emailState, passwordState);
+
     setResponseState({message: JSON.parse(account_authentication_data).message, error: JSON.parse(account_authentication_data).error});
 
-    setShowSpinnerState(false);
-
-    if (responseState.error === false) {
+    if (JSON.parse(account_authentication_data).message && JSON.parse(account_authentication_data).error === false) {
       history.push('/admin/index');
     }
+
+    setShowSpinnerState(false);
 
   }
 

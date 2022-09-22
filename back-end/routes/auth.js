@@ -53,7 +53,7 @@ router.get('/authenticategoogle', (req, res, next) => { passport.authenticate('g
     }
     req.logIn(user, err => {
         if (err) throw err;
-        res.send({ message: req.user, error: false });
+        res.redirect('http://localhost:3000/admin/index');
     });
 })(req, res, next)}
 );

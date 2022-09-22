@@ -15,7 +15,7 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 // reactstrap components
 import {
   DropdownMenu,
@@ -34,7 +34,29 @@ import {
   Media
 } from "reactstrap";
 
+import {
+  logoutUser
+} from "requests/requests"
+
+import { useState } from 'react' 
+
 const AdminNavbar = (props) => {
+
+  const history = useHistory();
+  const [ responseState, setResponseState ] = useState({ message: '', error: false });
+
+  async function logoutAccount(e) {
+
+    let account_authentication_data = await logoutUser();
+
+    setResponseState({message: JSON.parse(account_authentication_data).message, error: JSON.parse(account_authentication_data).error});
+
+    if (responseState.error === false) {
+      history.push('/auth/index');
+    }
+
+  }
+
   return (
     <>
       <Navbar className="navbar-top navbar-dark" expand="md" id="navbar-main">
@@ -95,7 +117,7 @@ const AdminNavbar = (props) => {
                   <span>Support</span>
                 </DropdownItem>
                 <DropdownItem divider />
-                <DropdownItem href="#pablo" onClick={(e) => e.preventDefault()}>
+                <DropdownItem onClick={logoutAccount}>
                   <i className="ni ni-user-run" />
                   <span>Logout</span>
                 </DropdownItem>
