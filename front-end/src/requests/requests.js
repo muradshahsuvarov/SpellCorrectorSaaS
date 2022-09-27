@@ -13,7 +13,7 @@ async function SendRequest(url, method, body) {
 
 async function GetAuthenticatedUser() {
 
-    let account_authentication = await SendRequest('http://localhost:5000/auth/user', 'GET');
+    let account_authentication = await SendRequest('http://localhost:5000/auth/getcurrentuser', 'GET');
     
     let account_authentication_data = await account_authentication.text();
 

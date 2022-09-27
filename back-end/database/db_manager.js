@@ -32,7 +32,8 @@ var user_schema = new Schema({
     is_admin: { type: Boolean, required: true },
     profile_picture: {type: String, required: false },
     account_creation_datetime: {type: String, required: false },
-    google_id: { type: String, required: false }
+    google_id: { type: String, required: false },
+    api_token: { type: String, required: true}
 
 });
 

@@ -131,6 +131,8 @@ router.post('/verify-email', async (req, res, next) => {
 
     const account_creation_datetime = current_date.getFullYear() + "-" + month + "-" + day + " " + hours + ":" + minutes + ":" + seconds;
 
+    const api_token = randomtoken.generate(200, "abcdefghijklmnopqrstuvwxzyABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+
     const user_object = {
         firstname: account_verification_user.firstname,
         lastname: account_verification_user.lastname,
@@ -140,7 +142,8 @@ router.post('/verify-email', async (req, res, next) => {
         is_admin: false,
         profile_picture: "",
         account_creation_datetime: account_creation_datetime,
-        google_id: ''
+        google_id: '',
+        api_token: api_token
     };
 
     var user_joi_schema = new Joi.object({
@@ -152,7 +155,8 @@ router.post('/verify-email', async (req, res, next) => {
         is_admin: Joi.boolean().required(),
         profile_picture: Joi.string().min(0).max(100),
         account_creation_datetime: Joi.string().min(19).max(19).required(),
-        google_id: Joi.string().min(0).max(200)
+        google_id: Joi.string().min(0).max(200),
+        api_token: Joi.string().min(200).max(200).required()
     });
 
     const { error } = user_joi_schema.validate(user_object);
@@ -172,7 +176,8 @@ router.post('/verify-email', async (req, res, next) => {
         is_admin: user_object.is_admin, 
         profile_picture: user_object.profile_picture, 
         account_creation_datetime: user_object.account_creation_datetime,
-        google_id: user_object.google_id
+        google_id: user_object.google_id,
+        api_token: api_token
 
     });
 

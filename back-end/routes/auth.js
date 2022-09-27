@@ -14,7 +14,7 @@ router.get('/', (req, res, next) => {
     res.send({ message: 'Authentication Endpoints', error: false });
 });
 
-router.get('/user', (req, res, next) => {
+router.get('/getcurrentuser', (req, res, next) => {
     if (req.user) {
         res.json({ message: JSON.stringify(req.user), error: false });
         return;

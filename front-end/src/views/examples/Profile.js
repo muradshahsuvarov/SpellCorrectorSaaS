@@ -32,13 +32,29 @@ import {
 // core components
 import UserHeader from "components/Headers/UserHeader.js";
 import { GetAuthenticatedUser } from 'requests/requests'
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useHistory } from "react-router-dom";
 
 const Profile = () => {
 
+  // React History Hook
   const history = useHistory();
 
+  // React States
+  const [user, setUser] = useState(null);
+  const [usernameText, setUsernameText] = useState('');
+  const [firstNameText, setFirstNameText] = useState('');
+  const [lastNameText, setLastNameText] = useState('');
+  const [aboutMeText, setAboutMeText] = useState('');
+  const [apiTokenBtnText, setApiTokenBtnText] = useState('Copy to clipboard');
+  const [aboutMeLength, setAboutMeLength] = useState(0);
+  const [apiTokenText, setApiTokenText] = useState('');
+
+  // React Reference Hooks
+  const apiTextRef = useRef();
+
+
+  // Use Effect Hooks
   useEffect(() => {
 
     async function RedirectIfUserIsAuthenticated() {
@@ -48,15 +64,55 @@ const Profile = () => {
         history.push('/auth/index');
         return;
       }
+
+        // User Data
+        const user = user_is_authenticated;
+        const user_data = JSON.parse(JSON.parse(user).message);
+        const user_error = JSON.parse(JSON.parse(user).error);
+        const user_object = { data: user_data, error: user_error };
+
+        await setUser(user_object);
+        await setUsernameText(user_object.data.username);
+        await setFirstNameText(user_object.data.firstname);
+        await setLastNameText(user_object.data.lastname);
+        await setAboutMeText(user_object.data.description);
+        await setApiTokenText(user_object.data.api_token);
     }
 
     RedirectIfUserIsAuthenticated();
   }, []);
 
+  // Functions 
+
+  
+  function copyToClipboard(e) {
+    navigator.clipboard.writeText(apiTextRef.current.props.value);
+    setApiTokenBtnText('Copied');
+    setTimeout(() => {
+      setApiTokenBtnText('Copy to clipboard');
+    }, 2000);
+  }
+
+  function usernameChange(e) {
+    setUsernameText(e.target.value);
+  }
+
+  function firstNameChange(e) {
+    setFirstNameText(e.target.value);
+  }
+
+  function lastNameChange(e) {
+    setLastNameText(e.target.value);
+  }
+
+  function aboutMeChange(e) {
+    setAboutMeLength(e.target.value.length);
+    setAboutMeText(e.target.value);
+  }
 
   return (
     <>
-      <UserHeader />
+      <UserHeader user={user} />
       {/* Page content */}
       <Container className="mt--7" fluid>
         <Row>
@@ -78,15 +134,6 @@ const Profile = () => {
               <CardHeader className="text-center border-0 pt-8 pt-md-4 pb-0 pb-md-4">
                 <div className="d-flex justify-content-between">
                   <Button
-                    className="mr-4"
-                    color="info"
-                    href="#pablo"
-                    onClick={(e) => e.preventDefault()}
-                    size="sm"
-                  >
-                    Connect
-                  </Button>
-                  <Button
                     className="float-right"
                     color="default"
                     href="#pablo"
@@ -103,22 +150,22 @@ const Profile = () => {
                     <div className="card-profile-stats d-flex justify-content-center mt-md-5">
                       <div>
                         <span className="heading">22</span>
-                        <span className="description">Friends</span>
+                        <span className="description">Models</span>
                       </div>
                       <div>
                         <span className="heading">10</span>
-                        <span className="description">Photos</span>
+                        <span className="description">Followers</span>
                       </div>
                       <div>
                         <span className="heading">89</span>
-                        <span className="description">Comments</span>
+                        <span className="description">Downloads</span>
                       </div>
                     </div>
                   </div>
                 </Row>
                 <div className="text-center">
                   <h3>
-                    Jessica Jones
+                  { user ? user.data.firstname : null } { user ? user.data.lastname : "" }
                     <span className="font-weight-light">, 27</span>
                   </h3>
                   <div className="h5 font-weight-300">
@@ -135,9 +182,7 @@ const Profile = () => {
                   </div>
                   <hr className="my-4" />
                   <p>
-                    Ryan — the name taken by Melbourne-raised, Brooklyn-based
-                    Nick Murphy — writes, performs and records all of his own
-                    music.
+                     A few words about you ...
                   </p>
                   <a href="#pablo" onClick={(e) => e.preventDefault()}>
                     Show more
@@ -155,12 +200,11 @@ const Profile = () => {
                   </Col>
                   <Col className="text-right" xs="4">
                     <Button
-                      color="primary"
-                      href="#pablo"
+                      color="info"
                       onClick={(e) => e.preventDefault()}
                       size="sm"
                     >
-                      Settings
+                      Save
                     </Button>
                   </Col>
                 </Row>
@@ -176,31 +220,16 @@ const Profile = () => {
                         <FormGroup>
                           <label
                             className="form-control-label"
-                            htmlFor="input-username"
-                          >
-                            Username
-                          </label>
-                          <Input
-                            className="form-control-alternative"
-                            defaultValue="lucky.jesse"
-                            id="input-username"
-                            placeholder="Username"
-                            type="text"
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col lg="6">
-                        <FormGroup>
-                          <label
-                            className="form-control-label"
                             htmlFor="input-email"
                           >
                             Email address
                           </label>
                           <Input
                             className="form-control-alternative"
+                            placeholder="Your email address"
+                            value={usernameText}
+                            onChange={usernameChange}
                             id="input-email"
-                            placeholder="jesse@example.com"
                             type="email"
                           />
                         </FormGroup>
@@ -217,9 +246,10 @@ const Profile = () => {
                           </label>
                           <Input
                             className="form-control-alternative"
-                            defaultValue="Lucky"
                             id="input-first-name"
-                            placeholder="First name"
+                            placeholder="Your first name"
+                            value={firstNameText}
+                            onChange={firstNameChange}
                             type="text"
                           />
                         </FormGroup>
@@ -234,9 +264,10 @@ const Profile = () => {
                           </label>
                           <Input
                             className="form-control-alternative"
-                            defaultValue="Jesse"
                             id="input-last-name"
-                            placeholder="Last name"
+                            placeholder="Your last name"
+                            value={lastNameText}
+                            onChange={lastNameChange}
                             type="text"
                           />
                         </FormGroup>
@@ -250,25 +281,6 @@ const Profile = () => {
                   </h6>
                   <div className="pl-lg-4">
                     <Row>
-                      <Col md="12">
-                        <FormGroup>
-                          <label
-                            className="form-control-label"
-                            htmlFor="input-address"
-                          >
-                            Address
-                          </label>
-                          <Input
-                            className="form-control-alternative"
-                            defaultValue="Bld Mihail Kogalniceanu, nr. 8 Bl 1, Sc 1, Ap 09"
-                            id="input-address"
-                            placeholder="Home Address"
-                            type="text"
-                          />
-                        </FormGroup>
-                      </Col>
-                    </Row>
-                    <Row>
                       <Col lg="4">
                         <FormGroup>
                           <label
@@ -279,9 +291,8 @@ const Profile = () => {
                           </label>
                           <Input
                             className="form-control-alternative"
-                            defaultValue="New York"
                             id="input-city"
-                            placeholder="City"
+                            placeholder="Your city"
                             type="text"
                           />
                         </FormGroup>
@@ -296,26 +307,9 @@ const Profile = () => {
                           </label>
                           <Input
                             className="form-control-alternative"
-                            defaultValue="United States"
                             id="input-country"
-                            placeholder="Country"
+                            placeholder="Your country"
                             type="text"
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col lg="4">
-                        <FormGroup>
-                          <label
-                            className="form-control-label"
-                            htmlFor="input-country"
-                          >
-                            Postal code
-                          </label>
-                          <Input
-                            className="form-control-alternative"
-                            id="input-postal-code"
-                            placeholder="Postal code"
-                            type="number"
                           />
                         </FormGroup>
                       </Col>
@@ -326,15 +320,48 @@ const Profile = () => {
                   <h6 className="heading-small text-muted mb-4">About me</h6>
                   <div className="pl-lg-4">
                     <FormGroup>
-                      <label>About Me</label>
+                      <label>About Me <span className={aboutMeLength >= 200 ? "text-danger font-weight-light" : "font-weight-light"}>, {aboutMeLength} / 200</span></label>
                       <Input
                         className="form-control-alternative"
                         placeholder="A few words about you ..."
-                        rows="4"
-                        defaultValue="A beautiful Dashboard for Bootstrap 4. It is Free and
-                        Open Source."
+                        value={aboutMeText}
+                        onChange={aboutMeChange}
+                        rows="4"       
                         type="textarea"
                       />
+                    </FormGroup>
+                  </div>
+                  <hr className="my-4" />
+                  {/* Description */}
+                  <h6 className="heading-small text-muted mb-4">API Token</h6>
+                  <div className="pl-lg-4">
+                    <FormGroup>
+                      <label>Token</label>
+                      <Input
+                        className="form-control-alternative"
+                        placeholder="Your API Token"
+                        value={apiTokenText}
+                        rows="4"
+                        disabled={true}
+                        ref={apiTextRef}
+                        type="text"
+                      />
+                      <br/>
+                      <Button
+                        color="primary"
+                        href="#pablo"
+                        onClick={(e) => e.preventDefault()}
+                        size="sm"
+                      >
+                      Generate API Key
+                     </Button>
+                     <Button
+                        color="primary"
+                        onClick={copyToClipboard}
+                        size="sm"
+                      >
+                      {apiTokenBtnText}
+                     </Button>
                     </FormGroup>
                   </div>
                 </Form>
