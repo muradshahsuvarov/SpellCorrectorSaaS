@@ -31,7 +31,7 @@ import {
 } from "reactstrap";
 // core components
 import UserHeader from "components/Headers/UserHeader.js";
-import { GetAuthenticatedUser } from 'requests/requests'
+import { GetAuthenticatedUser, validateEmail, checkNameLength, checkName } from 'requests/requests'
 import { useEffect, useState, useRef } from "react";
 import { useHistory } from "react-router-dom";
 
@@ -42,10 +42,12 @@ const Profile = () => {
 
   // React States
   const [user, setUser] = useState(null);
-  const [usernameText, setUsernameText] = useState('');
-  const [firstNameText, setFirstNameText] = useState('');
-  const [lastNameText, setLastNameText] = useState('');
-  const [aboutMeText, setAboutMeText] = useState('');
+  const [emailState, setEmailState] = useState({ name: '', error: false, error_message: ''});
+  const [firstNameState, setFirstNameState] = useState({ name: '', error: false, error_message: ''});
+  const [lastNameState, setLastNameState] = useState({ name: '', error: false, error_message: ''});
+  const [aboutMeState, setAboutMeState] = useState({ name: '', error: false, error_message: ''});
+  const [cityState, setCityState] = useState({ name: '', error: false, error_message: ''});
+  const [countryState, setCountryState] = useState({ name: '', error: false, error_message: ''});
   const [apiTokenBtnText, setApiTokenBtnText] = useState('Copy to clipboard');
   const [aboutMeLength, setAboutMeLength] = useState(0);
   const [apiTokenText, setApiTokenText] = useState('');
@@ -55,6 +57,85 @@ const Profile = () => {
 
 
   // Use Effect Hooks
+
+  useEffect(() => {
+    if (validateEmail(emailState.name) == true) {
+      setEmailState((prevState) => ({ ...prevState , error: false}));
+    }else{
+      setEmailState((prevState) => ({ ...prevState , error_message: "Email format is invalid" , error: true}));
+    }
+
+  }, [emailState.name]);
+
+  useEffect(() => {
+      
+    if (checkName(firstNameState.name) == false) {
+      setFirstNameState((prevState) => ({ ...prevState , error_message: "The name has to contain alphabetic character from a-Z" , error: true}));
+    }else{
+      if (firstNameState.name.length !== 0) {
+        if (checkNameLength(firstNameState.name) == true) {
+          setFirstNameState((prevState) => ({ ...prevState , error: false}));
+        }else{
+          setFirstNameState((prevState) => ({ ...prevState , error_message: "The name length has to be between 10 and 30" , error: true}));
+        }
+      }else{
+        setFirstNameState((prevState) => ({ ...prevState , error_message: "The name length has to be between 10 and 30" , error: true}));
+      }
+    }
+
+  }, [firstNameState.name]);
+
+  useEffect(() => {
+      
+    if (checkName(lastNameState.name) == false) {
+      setLastNameState((prevState) => ({ ...prevState , error_message: "The name has to contain alphabetic character from a-Z" , error: true}));
+    }else{
+      if (lastNameState.name.length !== 0) {
+        if (checkNameLength(lastNameState.name) == true) {
+          setLastNameState((prevState) => ({ ...prevState , error: false}));
+        }else{
+          setLastNameState((prevState) => ({ ...prevState , error_message: "The name length has to be between 10 and 30" , error: true}));
+        }
+      }else{
+        setLastNameState((prevState) => ({ ...prevState , error_message: "The name length has to be between 10 and 30" , error: true}));
+      }
+    }
+
+  }, [lastNameState.name]);
+
+  useEffect(() => {
+    if (aboutMeLength >= 200) {
+      setAboutMeState((prevState) => ({...prevState, error: true, error_message: 'Maximum number of characters exceeded'}));
+    }else{
+      setAboutMeState((prevState) => ({...prevState, error: false}));
+    }
+  }, [aboutMeLength]);
+
+  useEffect(() => {
+    if (checkName(cityState.name) == false) {
+      if (cityState.name.valueOf()) {
+        setCityState((prevState) => ({ ...prevState , error_message: "The name has to contain alphabetic character from a-Z" , error: true}));
+      }else{
+        setCityState((prevState) => ({ ...prevState , error: false}));
+      }
+    }else{
+      setCityState((prevState) => ({ ...prevState , error: false}));
+    }
+  }, [cityState]);
+
+  useEffect(() => {
+    if (checkName(countryState.name) == false) {
+      if (countryState.name.valueOf()) {
+        setCountryState((prevState) => ({ ...prevState , error_message: "The name has to contain alphabetic character from a-Z" , error: true}));
+      }else{
+        setCountryState((prevState) => ({ ...prevState , error: false}));
+      }
+    }else{
+      setCountryState((prevState) => ({ ...prevState , error: false}));
+    }
+  }, [countryState]);
+
+
   useEffect(() => {
 
     async function RedirectIfUserIsAuthenticated() {
@@ -72,10 +153,10 @@ const Profile = () => {
         const user_object = { data: user_data, error: user_error };
 
         await setUser(user_object);
-        await setUsernameText(user_object.data.username);
-        await setFirstNameText(user_object.data.firstname);
-        await setLastNameText(user_object.data.lastname);
-        await setAboutMeText(user_object.data.description);
+        await setEmailState({ name: user_object.data.username, error: false, error_message: ''});
+        await setFirstNameState({ name: user_object.data.firstname, error: false, error_message: ''});
+        await setLastNameState({ name: user_object.data.lastname, error: false, error_message: ''});
+        await setAboutMeState({ name: user_object.data.description, error: false, error_message: ''});
         await setApiTokenText(user_object.data.api_token);
     }
 
@@ -83,7 +164,6 @@ const Profile = () => {
   }, []);
 
   // Functions 
-
   
   function copyToClipboard(e) {
     navigator.clipboard.writeText(apiTextRef.current.props.value);
@@ -93,21 +173,29 @@ const Profile = () => {
     }, 2000);
   }
 
-  function usernameChange(e) {
-    setUsernameText(e.target.value);
+  function emailChange(e) {
+    setEmailState((prevState) => ({ ...prevState, name: e.target.value }));
   }
 
   function firstNameChange(e) {
-    setFirstNameText(e.target.value);
+    setFirstNameState((prevState) => ({...prevState, name: e.target.value}));
   }
 
   function lastNameChange(e) {
-    setLastNameText(e.target.value);
+    setLastNameState((prevState) => ({...prevState, name: e.target.value}));
   }
 
   function aboutMeChange(e) {
     setAboutMeLength(e.target.value.length);
-    setAboutMeText(e.target.value);
+    setAboutMeState(e.target.value);
+  }
+
+  function cityChange(e) {
+    setCityState((prevState) => ({...prevState, name: e.target.value}))
+  }
+
+  function countryChange(e) {
+    setCountryState((prevState) => ({...prevState, name: e.target.value}))
   }
 
   return (
@@ -218,6 +306,15 @@ const Profile = () => {
                     <Row>
                       <Col lg="6">
                         <FormGroup>
+                          { emailState.error === true ? 
+                              <div className="text-muted">
+                                <small>
+                                  <span className="text-danger font-weight-700">{emailState.error_message}</span>
+                                </small>
+                              </div>
+                              :
+                              null
+                          }
                           <label
                             className="form-control-label"
                             htmlFor="input-email"
@@ -227,8 +324,8 @@ const Profile = () => {
                           <Input
                             className="form-control-alternative"
                             placeholder="Your email address"
-                            value={usernameText}
-                            onChange={usernameChange}
+                            value={emailState.name}
+                            onChange={emailChange}
                             id="input-email"
                             type="email"
                           />
@@ -238,6 +335,15 @@ const Profile = () => {
                     <Row>
                       <Col lg="6">
                         <FormGroup>
+                        { firstNameState.error === true ? 
+                              <div className="text-muted">
+                                <small>
+                                  <span className="text-danger font-weight-700">{firstNameState.error_message}</span>
+                                </small>
+                              </div>
+                              :
+                              null
+                        }
                           <label
                             className="form-control-label"
                             htmlFor="input-first-name"
@@ -248,7 +354,7 @@ const Profile = () => {
                             className="form-control-alternative"
                             id="input-first-name"
                             placeholder="Your first name"
-                            value={firstNameText}
+                            value={firstNameState.name}
                             onChange={firstNameChange}
                             type="text"
                           />
@@ -256,6 +362,15 @@ const Profile = () => {
                       </Col>
                       <Col lg="6">
                         <FormGroup>
+                        { lastNameState.error === true ? 
+                              <div className="text-muted">
+                                <small>
+                                  <span className="text-danger font-weight-700">{lastNameState.error_message}</span>
+                                </small>
+                              </div>
+                              :
+                              null
+                        }
                           <label
                             className="form-control-label"
                             htmlFor="input-last-name"
@@ -266,7 +381,7 @@ const Profile = () => {
                             className="form-control-alternative"
                             id="input-last-name"
                             placeholder="Your last name"
-                            value={lastNameText}
+                            value={lastNameState.name}
                             onChange={lastNameChange}
                             type="text"
                           />
@@ -283,6 +398,15 @@ const Profile = () => {
                     <Row>
                       <Col lg="4">
                         <FormGroup>
+                        { cityState.error === true ? 
+                              <div className="text-muted">
+                                <small>
+                                  <span className="text-danger font-weight-700">{cityState.error_message}</span>
+                                </small>
+                              </div>
+                              :
+                              null
+                          }
                           <label
                             className="form-control-label"
                             htmlFor="input-city"
@@ -293,12 +417,22 @@ const Profile = () => {
                             className="form-control-alternative"
                             id="input-city"
                             placeholder="Your city"
+                            onChange={cityChange}
                             type="text"
                           />
                         </FormGroup>
                       </Col>
                       <Col lg="4">
                         <FormGroup>
+                        { countryState.error === true ? 
+                              <div className="text-muted">
+                                <small>
+                                  <span className="text-danger font-weight-700">{countryState.error_message}</span>
+                                </small>
+                              </div>
+                              :
+                              null
+                        }
                           <label
                             className="form-control-label"
                             htmlFor="input-country"
@@ -309,6 +443,7 @@ const Profile = () => {
                             className="form-control-alternative"
                             id="input-country"
                             placeholder="Your country"
+                            onChange={countryChange}
                             type="text"
                           />
                         </FormGroup>
@@ -320,11 +455,20 @@ const Profile = () => {
                   <h6 className="heading-small text-muted mb-4">About me</h6>
                   <div className="pl-lg-4">
                     <FormGroup>
+                    { aboutMeState.error === true ? 
+                              <div className="text-muted">
+                                <small>
+                                  <span className="text-danger font-weight-700">{aboutMeState.error_message}</span>
+                                </small>
+                              </div>
+                              :
+                              null
+                          }
                       <label>About Me <span className={aboutMeLength >= 200 ? "text-danger font-weight-light" : "font-weight-light"}>, {aboutMeLength} / 200</span></label>
                       <Input
                         className="form-control-alternative"
                         placeholder="A few words about you ..."
-                        value={aboutMeText}
+                        value={aboutMeState.name}
                         onChange={aboutMeChange}
                         rows="4"       
                         type="textarea"

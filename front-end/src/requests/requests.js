@@ -44,4 +44,30 @@ async function logoutUser(e) {
     return account_authentication_data; 
 }
 
-export { SendRequest, GetAuthenticatedUser, loginUser ,logoutUser }
+function validateEmail(email) 
+{
+    if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email))
+    {
+      return true;
+    }
+      return false;
+}
+
+function checkNameLength(name) {
+
+    if (name.length < 3 || name.length > 40) {
+      return false;
+    }
+
+    return true;
+}
+
+function checkName(name) {
+
+    if (name.indexOf(' ') >= 0 || !name.match(/^[a-zA-Z\s]+$/i)) {
+      return false;
+    }
+    return true;
+}
+
+export { SendRequest, GetAuthenticatedUser, loginUser ,logoutUser, validateEmail, checkNameLength, checkName }

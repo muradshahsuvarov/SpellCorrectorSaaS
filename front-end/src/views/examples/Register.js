@@ -37,7 +37,7 @@ import {
   Col
 } from "reactstrap";
 
-import { GetAuthenticatedUser } from 'requests/requests';
+import { GetAuthenticatedUser, validateEmail, checkNameLength, checkName } from 'requests/requests';
 import { useHistory } from "react-router-dom";
 
 const Register = () => {
@@ -115,33 +115,6 @@ async function verifyAccount(_token) {
 
   const [formErrorState, setFormErrorState] = useState(true);
   const [privacyAcceptState, setPrivacyAcceptState] = useState(false);
-
-  // Validate Email Format
-  function validateEmail(email) 
-  {
-    if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email))
-    {
-      return true;
-    }
-      return false;
-  }
-
-  function checkNameLength(name) {
-
-    if (name.length < 5 || name.length > 40) {
-      return false;
-    }
-
-    return true;
-  }
-
-  function checkName(name) {
-
-    if (name.indexOf(' ') >= 0 || !name.match(/^[a-zA-Z\s]+$/i)) {
-      return false;
-    }
-    return true;
-  }
   
 
   function checkPasswordLength(password) {
