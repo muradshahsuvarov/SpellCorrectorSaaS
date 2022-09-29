@@ -37,7 +37,15 @@ import {
   Col
 } from "reactstrap";
 
-import { GetAuthenticatedUser, validateEmail, checkNameLength, checkName } from 'requests/requests';
+import { 
+   GetAuthenticatedUser,
+   validateEmail,
+   checkNameLength,
+   checkName,
+   SendRequest,
+   checkPasswordLength,
+   checkPassword
+} from 'requests/requests';
 import { useHistory } from "react-router-dom";
 
 const Register = () => {
@@ -58,38 +66,21 @@ const Register = () => {
 
     RedirectIfUserIsAuthenticated();
   }, []);
-  
-
-
-  async function sendRequest(url, method, body) {
-    
-    const options = {
-        method: method,
-        headers: new Headers({'content-type': 'application/json'}),
-        mode: 'cors'
-    };
-
-    options.body = JSON.stringify(body);
-
-    return await fetch(url, options);
-}
 
 async function verifyAccount(_token) {
 
-  let account_verification = await sendRequest('http://localhost:5000/registration/verify-email', 'POST',
+  let account_verification = await SendRequest('http://localhost:5000/registration/verify-email', 'POST',
   { 
       token: _token
   });
     
   let account_creation_data = await account_verification.text();
-
-  console.log({message: JSON.parse(account_creation_data).message, error: JSON.parse(account_creation_data).error});      
   
   setAccountVerifyState({message: JSON.parse(account_creation_data).message, error: JSON.parse(account_creation_data).error});
 }
 
-  const location = useLocation()
-  const params = new URLSearchParams(location.search)
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
   const url_token = params.get("token");
 
   const [accountVerifyState, setAccountVerifyState] = useState({ message: '', error: false });
@@ -115,55 +106,6 @@ async function verifyAccount(_token) {
 
   const [formErrorState, setFormErrorState] = useState(true);
   const [privacyAcceptState, setPrivacyAcceptState] = useState(false);
-  
-
-  function checkPasswordLength(password) {
-
-    if (password.length < 10 || password.length > 30) {
-      return false;
-    }
-
-    return true;
-  }
-
-  function checkPassword(password) {
-    var strength = 0;
-    if (password.match(/[a-z]+/)) {
-      strength += 1;
-    }
-    if (password.match(/[A-Z]+/)) {
-      strength += 1;
-    }
-    if (password.match(/[0-9]+/)) {
-      strength += 1;
-    }
-    if (password.match(/[$@#&!]+/)) {
-      strength += 1;
-  
-    }
-  
-    switch (strength) {
-      case 0:
-        return "Very Weak";
-        break;
-  
-      case 1:
-        return "Weak";
-        break;
-  
-      case 2:
-        return "Normal";
-        break;
-  
-      case 3:
-        return "Strong";
-        break;
-  
-      case 4:
-        return "Very Strong";
-        break;
-    }
-  }
 
   const [ responseState, setResponseState ] = useState({message: '', error: false});
   const [ showSpinnerState, setShowSpinnerState ] = useState(false);
@@ -172,7 +114,7 @@ async function verifyAccount(_token) {
 
     setShowSpinnerState(true);
 
-    let account_creation = await sendRequest('http://localhost:5000/registration/request-user', 'POST',
+    let account_creation = await SendRequest('http://localhost:5000/registration/request-user', 'POST',
     { 
 
       firstname: firstNameState.name,
@@ -283,13 +225,14 @@ async function verifyAccount(_token) {
     setFirstPassState(e.target.value);
   }
 
-  function checkBoxChange(e) {
-    setPrivacyAcceptState(e.target.checked);
-  }
-
   function secondPasswordChange(e) {
     setSecPassState(e.target.value);
   }
+
+  function checkBoxChange(e) {
+    setPrivacyAcceptState(e.target.checked);
+  }
+  
 
   function emailChange(e) {
     setEmailState({ name: e.target.value});
@@ -307,12 +250,12 @@ async function verifyAccount(_token) {
             :
             responseState.message && responseState.error == true ?
               <div className="text-center text-muted mb-4">
-              <small>User creation failure</small>
+               <small>User creation failure</small>
               </div>
             :
             accountVerifyState.message && accountVerifyState.error == false ?
-            <div className="text-center text-muted mb-4">
-              <small>Account Verification</small>
+              <div className="text-center text-muted mb-4">
+                <small>Account Verification</small>
               </div>
             :
             <>
@@ -450,19 +393,20 @@ async function verifyAccount(_token) {
                   />
                 </InputGroup>
               </FormGroup>
-              { passwordErrorState.error == false ?
-              <div className="text-muted font-italic">
-                <small>
-                  Password Strength:{" "}
-                  <span className="text-success font-weight-700">{passStrengthState}</span>
-                </small>
-              </div> : 
-              <div className="text-muted font-italic">
-                <small>
-                  <span className="text-danger font-weight-700">{passwordErrorState.message}</span>
-                </small>
-              </div> }
-
+              { 
+                passwordErrorState.error == false ?
+                <div className="text-muted font-italic">
+                  <small>
+                    Password Strength:{" "}
+                    <span className="text-success font-weight-700">{passStrengthState}</span>
+                  </small>
+                </div> : 
+                <div className="text-muted font-italic">
+                  <small>
+                    <span className="text-danger font-weight-700">{passwordErrorState.message}</span>
+                  </small>
+                </div> 
+              }
               <Row className="my-4">
                 <Col xs="12">
                   <div className="custom-control custom-control-alternative custom-checkbox">

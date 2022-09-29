@@ -70,4 +70,62 @@ function checkName(name) {
     return true;
 }
 
-export { SendRequest, GetAuthenticatedUser, loginUser ,logoutUser, validateEmail, checkNameLength, checkName }
+function checkPasswordLength(password) {
+
+  if (password.length < 10 || password.length > 30) {
+    return false;
+  }
+
+  return true;
+}
+
+function checkPassword(password) {
+  var strength = 0;
+  if (password.match(/[a-z]+/)) {
+    strength += 1;
+  }
+  if (password.match(/[A-Z]+/)) {
+    strength += 1;
+  }
+  if (password.match(/[0-9]+/)) {
+    strength += 1;
+  }
+  if (password.match(/[$@#&!]+/)) {
+    strength += 1;
+
+  }
+
+  switch (strength) {
+    case 0:
+      return "Very Weak";
+      break;
+
+    case 1:
+      return "Weak";
+      break;
+
+    case 2:
+      return "Normal";
+      break;
+
+    case 3:
+      return "Strong";
+      break;
+
+    case 4:
+      return "Very Strong";
+      break;
+  }
+}
+
+export { 
+  SendRequest,
+  GetAuthenticatedUser,
+  loginUser,
+  logoutUser,
+  validateEmail,
+  checkNameLength,
+  checkName,
+  checkPasswordLength,
+  checkPassword
+}

@@ -94,7 +94,7 @@ router.post('/request-user', async (req, res, next) => {
 
     // Sending an email
     var email_sending_status;
-    await sendemail.sendEmail(account_verification_object.email, account_verification_object.token).then((status)=>{
+    await sendemail.sendVerificationEmail(account_verification_object.email, account_verification_object.token).then((status)=>{
         email_sending_status = status;
     });
     if (email_sending_status.error === true) {
@@ -117,7 +117,7 @@ router.post('/verify-email', async (req, res, next) => {
         return;
     }else{
         if (account_verification_user.verified === true) {
-            res.status(401).json({ message: `User ${account_verification_user.email} has already been verified`, error: true });
+            res.status(409).json({ message: `User ${account_verification_user.email} has already been verified`, error: true });
             return;
         }
     }

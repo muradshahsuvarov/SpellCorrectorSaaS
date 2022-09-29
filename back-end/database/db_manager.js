@@ -49,10 +49,23 @@ var model_schema = new Schema({
 
 });
 
+var account_update_verifications = new Schema({
+
+    from_email: { type: String, required: true },
+    to_email: { type: String, required: true },
+    token: { type: String, required: true },
+    created_at_date: { type: String, required: true },
+    updated_at_date: { type: String, required: false },
+    verified: { type: Boolean, required: true }
+
+});
+
 var Users = mongoose.model('Users', user_schema, 'users');
 var Models = mongoose.model('Models', model_schema, 'models');
 var AccountVerifications = mongoose.model('AccountVerifications', account_verification_schema, 'account_verifications');
+var AccountUpdateVerifications = mongoose.model('AccountUpdateVerifications', account_update_verifications, 'account_update_verifications');
 
 module.exports.Users = Users;
 module.exports.Models = Models;
 module.exports.AccountVerifications = AccountVerifications;
+module.exports.AccountUpdateVerifications = AccountUpdateVerifications;

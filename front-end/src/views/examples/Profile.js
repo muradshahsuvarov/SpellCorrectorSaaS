@@ -31,9 +31,18 @@ import {
 } from "reactstrap";
 // core components
 import UserHeader from "components/Headers/UserHeader.js";
-import { GetAuthenticatedUser, validateEmail, checkNameLength, checkName } from 'requests/requests'
+import { 
+   GetAuthenticatedUser,
+   validateEmail,
+   checkNameLength,
+   checkName,
+   checkPasswordLength,
+   checkPassword
+} from 'requests/requests'
 import { useEffect, useState, useRef } from "react";
 import { useHistory } from "react-router-dom";
+import { SpinnerCircular } from 'spinners-react'
+import { SendRequest } from "requests/requests";
 
 const Profile = () => {
 
@@ -46,17 +55,31 @@ const Profile = () => {
   const [firstNameState, setFirstNameState] = useState({ name: '', error: false, error_message: ''});
   const [lastNameState, setLastNameState] = useState({ name: '', error: false, error_message: ''});
   const [aboutMeState, setAboutMeState] = useState({ name: '', error: false, error_message: ''});
-  const [cityState, setCityState] = useState({ name: '', error: false, error_message: ''});
-  const [countryState, setCountryState] = useState({ name: '', error: false, error_message: ''});
   const [apiTokenBtnText, setApiTokenBtnText] = useState('Copy to clipboard');
   const [aboutMeLength, setAboutMeLength] = useState(0);
   const [apiTokenText, setApiTokenText] = useState('');
+  const [showSpinnerState, setShowSpinnerState] = useState(false);
+  const [passStrengthState, setPassStrengthState] = useState('Very Weak');
+  const [passwordErrorState, setPasswordError] = useState({ message: '', error: false });
+  const [currentPassState, setCurrentPassState] = useState({ text: '', error: false, error_text: ''});
+  const [firstPassState, setFirstPassState] = useState('');
+  const [secPassState, setSecPassState] = useState('');
+  const [saveButtonState, setSaveButtonState] = useState({ message: '', error: false });
+  const [formState, setFormState] = useState({ message: '', valid: false });
 
   // React Reference Hooks
   const apiTextRef = useRef();
 
 
   // Use Effect Hooks
+
+  useEffect(() => {
+    if (firstNameState.error === false && lastNameState.error === false && passwordErrorState.error === false && aboutMeState.error === false) {
+      setSaveButtonState({ error: false });
+    }else{
+      setSaveButtonState({ message: 'One of the fields are wrong', error: true });
+    }
+  }, [firstNameState.error, lastNameState.error, passwordErrorState.error, aboutMeState.error]);
 
   useEffect(() => {
     if (validateEmail(emailState.name) == true) {
@@ -66,6 +89,28 @@ const Profile = () => {
     }
 
   }, [emailState.name]);
+
+   // Password Checker
+   useEffect(() => {
+    if (currentPassState.error === true) {
+      setPasswordError({ message: "The current password is wrong" , error: true});
+    }else{
+      if (firstPassState.length !== 0 || secPassState.length !== 0) {
+        if (firstPassState.valueOf() === secPassState.valueOf()) {
+          if (checkPasswordLength(firstPassState) == true) {
+            setPasswordError({ message: '', error: false });
+            setPassStrengthState(checkPassword(firstPassState))   
+          }else{
+            setPasswordError({ message: 'The password length has to be between 10 and 30' , error: true });
+          }
+        }else{
+          setPasswordError({ message: 'Passwords don\'t match', error: true });
+        }
+      }else{
+        setPasswordError({ message: '', error: false });
+      }
+    }
+  }, [firstPassState, secPassState, currentPassState]);
 
   useEffect(() => {
       
@@ -112,31 +157,6 @@ const Profile = () => {
   }, [aboutMeLength]);
 
   useEffect(() => {
-    if (checkName(cityState.name) == false) {
-      if (cityState.name.valueOf()) {
-        setCityState((prevState) => ({ ...prevState , error_message: "The name has to contain alphabetic character from a-Z" , error: true}));
-      }else{
-        setCityState((prevState) => ({ ...prevState , error: false}));
-      }
-    }else{
-      setCityState((prevState) => ({ ...prevState , error: false}));
-    }
-  }, [cityState]);
-
-  useEffect(() => {
-    if (checkName(countryState.name) == false) {
-      if (countryState.name.valueOf()) {
-        setCountryState((prevState) => ({ ...prevState , error_message: "The name has to contain alphabetic character from a-Z" , error: true}));
-      }else{
-        setCountryState((prevState) => ({ ...prevState , error: false}));
-      }
-    }else{
-      setCountryState((prevState) => ({ ...prevState , error: false}));
-    }
-  }, [countryState]);
-
-
-  useEffect(() => {
 
     async function RedirectIfUserIsAuthenticated() {
 
@@ -173,10 +193,6 @@ const Profile = () => {
     }, 2000);
   }
 
-  function emailChange(e) {
-    setEmailState((prevState) => ({ ...prevState, name: e.target.value }));
-  }
-
   function firstNameChange(e) {
     setFirstNameState((prevState) => ({...prevState, name: e.target.value}));
   }
@@ -190,12 +206,78 @@ const Profile = () => {
     setAboutMeState(e.target.value);
   }
 
-  function cityChange(e) {
-    setCityState((prevState) => ({...prevState, name: e.target.value}))
+  async function saveUser(e) {
+
+    setShowSpinnerState(true);
+
+    const email = emailState.name;
+    const firstName = firstNameState.name;
+    const lastName = lastNameState.name;
+    const aboutMe = aboutMeState.name;
+    const apiToken = apiTokenText.valueOf();
+
+    // Save password if new passwords have been entered
+
+    if (firstPassState.valueOf() && secPassState.valueOf()) {
+
+      let passwords_equal = await SendRequest('http://localhost:5000/auth/passwordsequal', 'POST', {
+        password: currentPassState.text
+      });
+
+      let passwords_equal_data = await passwords_equal.text();
+
+      if (JSON.parse(passwords_equal_data).error === false) {
+
+        let new_old_passwords_equal = await SendRequest('http://localhost:5000/auth/passwordsequal', 'POST', {
+           password: firstPassState.valueOf()
+        });
+
+        let new_old_passwords_equal_data = await new_old_passwords_equal.text(); 
+
+        if (JSON.parse(new_old_passwords_equal_data).error === false) {
+          setPasswordError({ message: 'New password can\'t be equal to the current one' , error: true});
+          return;
+        }
+
+        setPasswordError({ message: 'Password successfully submitted' , error: false});
+      }else{
+        setPasswordError({ message: 'Current password is wrong' , error: true});
+        return;
+      }
+    }
+
+    // Save the form
+
+    let save_user = await SendRequest('http://localhost:5000/auth/saveprofile', 'POST', {
+
+      email: email,
+      firstName: firstName,
+      lastName: lastName,
+      aboutMe: aboutMe,
+      apiToken: apiToken,
+      password: !firstPassState.valueOf() ? user.data.password : firstPassState
+
+    });
+
+    let save_user_data = await save_user.text();
+
+    await setFormState({ message: JSON.parse(save_user_data).message, valid: true });
+
+    // Re-authenticate user with a freshly retrieved data 
+
+    setShowSpinnerState(false);
   }
 
-  function countryChange(e) {
-    setCountryState((prevState) => ({...prevState, name: e.target.value}))
+  function currentPasswordChange(e) {
+    setCurrentPassState((prevState) => ({ ...prevState, text: e.target.value}));
+  }
+
+  function firstPasswordChange(e) {
+    setFirstPassState(e.target.value);
+  }
+
+  function secondPasswordChange(e) {
+    setSecPassState(e.target.value);
   }
 
   return (
@@ -280,237 +362,250 @@ const Profile = () => {
             </Card>
           </Col>
           <Col className="order-xl-1" xl="8">
+          {
+            formState.valid === true 
+            ?
+              <Card className="bg-secondary shadow">
+                <CardHeader className="bg-white border-0">
+                  <Row className="align-items-center">
+                    <Col xs="8">
+                      <h3 className="text-success mb-0">Successfully saved</h3>
+                    </Col>
+                  </Row>
+                </CardHeader>
+                <CardBody>
+                  <Form>
+                    <h6 className="heading-small text-muted mb-4">
+                      User modifications have been successfully saved
+                    </h6>
+                  </Form>
+                </CardBody>
+              </Card>
+            :
+            null
+          }
+          <br/>
             <Card className="bg-secondary shadow">
-              <CardHeader className="bg-white border-0">
-                <Row className="align-items-center">
-                  <Col xs="8">
-                    <h3 className="mb-0">My account</h3>
-                  </Col>
-                  <Col className="text-right" xs="4">
-                    <Button
-                      color="info"
-                      onClick={(e) => e.preventDefault()}
-                      size="sm"
-                    >
-                      Save
-                    </Button>
-                  </Col>
-                </Row>
-              </CardHeader>
-              <CardBody>
-                <Form>
-                  <h6 className="heading-small text-muted mb-4">
-                    User information
-                  </h6>
-                  <div className="pl-lg-4">
-                    <Row>
-                      <Col lg="6">
-                        <FormGroup>
-                          { emailState.error === true ? 
-                              <div className="text-muted">
-                                <small>
-                                  <span className="text-danger font-weight-700">{emailState.error_message}</span>
-                                </small>
-                              </div>
-                              :
-                              null
-                          }
-                          <label
-                            className="form-control-label"
-                            htmlFor="input-email"
-                          >
-                            Email address
-                          </label>
-                          <Input
-                            className="form-control-alternative"
-                            placeholder="Your email address"
-                            value={emailState.name}
-                            onChange={emailChange}
-                            id="input-email"
-                            type="email"
-                          />
-                        </FormGroup>
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col lg="6">
-                        <FormGroup>
-                        { firstNameState.error === true ? 
-                              <div className="text-muted">
-                                <small>
-                                  <span className="text-danger font-weight-700">{firstNameState.error_message}</span>
-                                </small>
-                              </div>
-                              :
-                              null
-                        }
-                          <label
-                            className="form-control-label"
-                            htmlFor="input-first-name"
-                          >
-                            First name
-                          </label>
-                          <Input
-                            className="form-control-alternative"
-                            id="input-first-name"
-                            placeholder="Your first name"
-                            value={firstNameState.name}
-                            onChange={firstNameChange}
-                            type="text"
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col lg="6">
-                        <FormGroup>
-                        { lastNameState.error === true ? 
-                              <div className="text-muted">
-                                <small>
-                                  <span className="text-danger font-weight-700">{lastNameState.error_message}</span>
-                                </small>
-                              </div>
-                              :
-                              null
-                        }
-                          <label
-                            className="form-control-label"
-                            htmlFor="input-last-name"
-                          >
-                            Last name
-                          </label>
-                          <Input
-                            className="form-control-alternative"
-                            id="input-last-name"
-                            placeholder="Your last name"
-                            value={lastNameState.name}
-                            onChange={lastNameChange}
-                            type="text"
-                          />
-                        </FormGroup>
-                      </Col>
-                    </Row>
-                  </div>
-                  <hr className="my-4" />
-                  {/* Address */}
-                  <h6 className="heading-small text-muted mb-4">
-                    Contact information
-                  </h6>
-                  <div className="pl-lg-4">
-                    <Row>
-                      <Col lg="4">
-                        <FormGroup>
-                        { cityState.error === true ? 
-                              <div className="text-muted">
-                                <small>
-                                  <span className="text-danger font-weight-700">{cityState.error_message}</span>
-                                </small>
-                              </div>
-                              :
-                              null
-                          }
-                          <label
-                            className="form-control-label"
-                            htmlFor="input-city"
-                          >
-                            City
-                          </label>
-                          <Input
-                            className="form-control-alternative"
-                            id="input-city"
-                            placeholder="Your city"
-                            onChange={cityChange}
-                            type="text"
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col lg="4">
-                        <FormGroup>
-                        { countryState.error === true ? 
-                              <div className="text-muted">
-                                <small>
-                                  <span className="text-danger font-weight-700">{countryState.error_message}</span>
-                                </small>
-                              </div>
-                              :
-                              null
-                        }
-                          <label
-                            className="form-control-label"
-                            htmlFor="input-country"
-                          >
-                            Country
-                          </label>
-                          <Input
-                            className="form-control-alternative"
-                            id="input-country"
-                            placeholder="Your country"
-                            onChange={countryChange}
-                            type="text"
-                          />
-                        </FormGroup>
-                      </Col>
-                    </Row>
-                  </div>
-                  <hr className="my-4" />
-                  {/* Description */}
-                  <h6 className="heading-small text-muted mb-4">About me</h6>
-                  <div className="pl-lg-4">
-                    <FormGroup>
-                    { aboutMeState.error === true ? 
-                              <div className="text-muted">
-                                <small>
-                                  <span className="text-danger font-weight-700">{aboutMeState.error_message}</span>
-                                </small>
-                              </div>
-                              :
-                              null
-                          }
-                      <label>About Me <span className={aboutMeLength >= 200 ? "text-danger font-weight-light" : "font-weight-light"}>, {aboutMeLength} / 200</span></label>
-                      <Input
-                        className="form-control-alternative"
-                        placeholder="A few words about you ..."
-                        value={aboutMeState.name}
-                        onChange={aboutMeChange}
-                        rows="4"       
-                        type="textarea"
-                      />
-                    </FormGroup>
-                  </div>
-                  <hr className="my-4" />
-                  {/* Description */}
-                  <h6 className="heading-small text-muted mb-4">API Token</h6>
-                  <div className="pl-lg-4">
-                    <FormGroup>
-                      <label>Token</label>
-                      <Input
-                        className="form-control-alternative"
-                        placeholder="Your API Token"
-                        value={apiTokenText}
-                        rows="4"
-                        disabled={true}
-                        ref={apiTextRef}
-                        type="text"
-                      />
-                      <br/>
-                      <Button
-                        color="primary"
-                        href="#pablo"
-                        onClick={(e) => e.preventDefault()}
-                        size="sm"
-                      >
-                      Generate API Key
-                     </Button>
-                     <Button
-                        color="primary"
-                        onClick={copyToClipboard}
-                        size="sm"
-                      >
-                      {apiTokenBtnText}
-                     </Button>
-                    </FormGroup>
-                  </div>
-                </Form>
-              </CardBody>
-            </Card>
+                      <CardHeader className="bg-white border-0">
+                        <Row className="align-items-center">
+                          <Col xs="8">
+                            <h3 className="mb-0">My account</h3>
+                          </Col>
+                          <Col className="text-right" xs="4">
+                            <Button
+                              color="info"
+                              onClick={saveUser}
+                              disabled={saveButtonState.error}
+                              size="sm"
+                            >
+                              { showSpinnerState === true 
+                                ? 
+                                  <SpinnerCircular size="15%" />
+                                :
+                                <>Save</>
+                              }
+                            </Button>
+                          </Col>
+                        </Row>
+                      </CardHeader>
+                      <CardBody>
+                        <Form>
+                          <h6 className="heading-small text-muted mb-4">
+                            User information
+                          </h6>
+                          <div className="pl-lg-4">
+                            <Row>
+                              <Col lg="6">
+                                <FormGroup>
+                                { firstNameState.error === true ? 
+                                      <div className="text-muted">
+                                        <small>
+                                          <span className="text-danger font-weight-700">{firstNameState.error_message}</span>
+                                        </small>
+                                      </div>
+                                      :
+                                      null
+                                }
+                                  <label
+                                    className="form-control-label"
+                                    htmlFor="input-first-name"
+                                  >
+                                    First name
+                                  </label>
+                                  <Input
+                                    className="form-control-alternative"
+                                    id="input-first-name"
+                                    placeholder="Your first name"
+                                    value={firstNameState.name}
+                                    onChange={firstNameChange}
+                                    type="text"
+                                  />
+                                </FormGroup>
+                              </Col>
+                              <Col lg="6">
+                                <FormGroup>
+                                { lastNameState.error === true ? 
+                                      <div className="text-muted">
+                                        <small>
+                                          <span className="text-danger font-weight-700">{lastNameState.error_message}</span>
+                                        </small>
+                                      </div>
+                                      :
+                                      null
+                                }
+                                  <label
+                                    className="form-control-label"
+                                    htmlFor="input-last-name"
+                                  >
+                                    Last name
+                                  </label>
+                                  <Input
+                                    className="form-control-alternative"
+                                    id="input-last-name"
+                                    placeholder="Your last name"
+                                    value={lastNameState.name}
+                                    onChange={lastNameChange}
+                                    type="text"
+                                  />
+                                </FormGroup>
+                              </Col>
+                            </Row>
+                          </div>
+                          <hr className="my-4" />
+                          {/* Address */}
+                          <h6 className="heading-small text-muted mb-4">
+                            Password
+                          </h6>
+                          <div className="pl-lg-4">
+                            <Row>
+                              <Col lg="4">
+                                <FormGroup>
+                                  <label
+                                    className="form-control-label"
+                                    htmlFor="input-country"
+                                  >
+                                    Current password
+                                  </label>
+                                  <Input
+                                    className="form-control-alternative"
+                                    id="input-country"
+                                    placeholder="Your current password"
+                                    onChange={currentPasswordChange}
+                                    type="password"
+                                  />
+                                </FormGroup>
+                              </Col>
+                              <Col lg="4">
+                                <FormGroup>
+                                  <label
+                                    className="form-control-label"
+                                    htmlFor="input-country"
+                                  >
+                                    New password
+                                  </label>
+                                  <Input
+                                    className="form-control-alternative"
+                                    id="input-country"
+                                    placeholder="Your new password"
+                                    onChange={firstPasswordChange}
+                                    type="password"
+                                  />
+                                </FormGroup>
+                              </Col>
+                              <Col lg="4">
+                                <FormGroup>
+                                  <label
+                                    className="form-control-label"
+                                    htmlFor="input-country"
+                                  >
+                                    Repeat new password
+                                  </label>
+                                  <Input
+                                    className="form-control-alternative"
+                                    id="input-country"
+                                    placeholder="Your new password"
+                                    onChange={secondPasswordChange}
+                                    type="password"
+                                  />
+                                </FormGroup>
+                                { 
+                                  passwordErrorState.error === false && passwordErrorState.message.valueOf() ?
+                                  <div className="text-muted font-italic">
+                                    <small>
+                                      Password Strength:{" "}
+                                      <span className="text-success font-weight-700">{passStrengthState}</span>
+                                    </small>
+                                  </div> : 
+                                  <div className="text-muted font-italic">
+                                    <small>
+                                      <span className="text-danger font-weight-700">{passwordErrorState.message}</span>
+                                    </small>
+                                  </div> 
+                                }
+                              </Col>
+                            </Row>
+                          </div>
+                          <hr className="my-4" />
+                          {/* Description */}
+                          <h6 className="heading-small text-muted mb-4">About me</h6>
+                          <div className="pl-lg-4">
+                            <FormGroup>
+                            { aboutMeState.error === true ? 
+                                      <div className="text-muted">
+                                        <small>
+                                          <span className="text-danger font-weight-700">{aboutMeState.error_message}</span>
+                                        </small>
+                                      </div>
+                                      :
+                                      null
+                                  }
+                              <label>About Me <span className={aboutMeLength >= 200 ? "text-danger font-weight-light" : "font-weight-light"}>, {aboutMeLength} / 200</span></label>
+                              <Input
+                                className="form-control-alternative"
+                                placeholder="A few words about you ..."
+                                value={aboutMeState.name}
+                                onChange={aboutMeChange}
+                                rows="4"       
+                                type="textarea"
+                              />
+                            </FormGroup>
+                          </div>
+                          <hr className="my-4" />
+                          {/* Description */}
+                          <h6 className="heading-small text-muted mb-4">API Token</h6>
+                          <div className="pl-lg-4">
+                            <FormGroup>
+                              <label>Token</label>
+                              <Input
+                                className="form-control-alternative"
+                                placeholder="Your API Token"
+                                value={apiTokenText}
+                                rows="4"
+                                disabled={true}
+                                ref={apiTextRef}
+                                type="text"
+                              />
+                              <br/>
+                              <Button
+                                color="primary"
+                                href="#pablo"
+                                onClick={(e) => e.preventDefault()}
+                                size="sm"
+                              >
+                              Generate API Key
+                            </Button>
+                            <Button
+                                color="primary"
+                                onClick={copyToClipboard}
+                                size="sm"
+                              >
+                              {apiTokenBtnText}
+                            </Button>
+                            </FormGroup>
+                          </div>
+                        </Form>
+                      </CardBody>
+                </Card>
           </Col>
         </Row>
       </Container>
