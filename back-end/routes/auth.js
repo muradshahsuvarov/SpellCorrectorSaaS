@@ -19,6 +19,11 @@ router.get('/', (req, res, next) => {
     res.send({ message: 'Authentication Endpoints', error: false });
 });
 
+router.get('/generatetoken', (req,res,next) => {
+    const api_token = randomtoken.generate(200, "abcdefghijklmnopqrstuvwxzyABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+    res.status(200).json({ token: api_token });
+});
+
 router.post('/saveprofile', async (req, res, next) => {
 
     const email = req.body.email;

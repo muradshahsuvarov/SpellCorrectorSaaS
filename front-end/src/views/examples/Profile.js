@@ -193,6 +193,12 @@ const Profile = () => {
   }, [emailState.name]);
 
   // Functions 
+
+  async function generateApiToken(e) {
+    let api_token = await SendRequest('http://localhost:5000/auth/generatetoken', 'GET');
+    let api_token_data = await api_token.text();
+    await setApiTokenText(JSON.parse(api_token_data).token);
+  }
   
   function copyToClipboard(e) {
     navigator.clipboard.writeText(apiTextRef.current.props.value);
@@ -636,8 +642,7 @@ const Profile = () => {
                               <br/>
                               <Button
                                 color="primary"
-                                href="#pablo"
-                                onClick={(e) => e.preventDefault()}
+                                onClick={generateApiToken}
                                 size="sm"
                               >
                               Generate API Key
