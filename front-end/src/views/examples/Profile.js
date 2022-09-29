@@ -42,7 +42,7 @@ import {
 import { useEffect, useState, useRef } from "react";
 import { useHistory } from "react-router-dom";
 import { SpinnerCircular } from 'spinners-react'
-import { SendRequest } from "requests/requests";
+import { SendRequest, loginUser } from "requests/requests";
 
 const Profile = () => {
 
@@ -92,6 +92,14 @@ const Profile = () => {
 
    // Password Checker
    useEffect(() => {
+
+    if (!currentPassState.text.valueOf()) {
+      setPasswordError({ message: 'Current Password is empty', error: true });
+      return;
+    }else{
+      setPasswordError({ message: 'Current Password is ok', error: false });
+    }
+
     if (currentPassState.error === true) {
       setPasswordError({ message: "The current password is wrong" , error: true});
     }else{
@@ -110,7 +118,7 @@ const Profile = () => {
         setPasswordError({ message: '', error: false });
       }
     }
-  }, [firstPassState, secPassState, currentPassState]);
+  }, [firstPassState, secPassState, currentPassState.text]);
 
   useEffect(() => {
       
@@ -177,11 +185,12 @@ const Profile = () => {
         await setFirstNameState({ name: user_object.data.firstname, error: false, error_message: ''});
         await setLastNameState({ name: user_object.data.lastname, error: false, error_message: ''});
         await setAboutMeState({ name: user_object.data.description, error: false, error_message: ''});
+        await setAboutMeLength(aboutMeState.name.length);
         await setApiTokenText(user_object.data.api_token);
     }
 
     RedirectIfUserIsAuthenticated();
-  }, []);
+  }, [emailState.name]);
 
   // Functions 
   
@@ -203,7 +212,7 @@ const Profile = () => {
 
   function aboutMeChange(e) {
     setAboutMeLength(e.target.value.length);
-    setAboutMeState(e.target.value);
+    setAboutMeState({ name: e.target.value, error: false, error_message: '' });
   }
 
   async function saveUser(e) {
@@ -216,54 +225,74 @@ const Profile = () => {
     const aboutMe = aboutMeState.name;
     const apiToken = apiTokenText.valueOf();
 
-    // Save password if new passwords have been entered
+    let passwords_equal = await SendRequest('http://localhost:5000/auth/passwordsequal', 'POST', {
+      password: currentPassState.text
+    });
 
-    if (firstPassState.valueOf() && secPassState.valueOf()) {
+    let passwords_equal_data = await passwords_equal.text();
 
-      let passwords_equal = await SendRequest('http://localhost:5000/auth/passwordsequal', 'POST', {
-        password: currentPassState.text
-      });
+    if (JSON.parse(passwords_equal_data).error === false) {
 
-      let passwords_equal_data = await passwords_equal.text();
+        // Save password if new passwords have been entered
 
-      if (JSON.parse(passwords_equal_data).error === false) {
+      if (firstPassState.valueOf() && secPassState.valueOf()) {
 
         let new_old_passwords_equal = await SendRequest('http://localhost:5000/auth/passwordsequal', 'POST', {
-           password: firstPassState.valueOf()
-        });
+            password: firstPassState.valueOf()
+          });
 
-        let new_old_passwords_equal_data = await new_old_passwords_equal.text(); 
+          let new_old_passwords_equal_data = await new_old_passwords_equal.text(); 
 
-        if (JSON.parse(new_old_passwords_equal_data).error === false) {
-          setPasswordError({ message: 'New password can\'t be equal to the current one' , error: true});
+          if (JSON.parse(new_old_passwords_equal_data).error === false) {
+            setPasswordError({ message: 'New password can\'t be equal to the current one' , error: true});
+            return;
+          }
+
+          setPasswordError({ message: 'Password successfully submitted' , error: false});
+
+          
+      }
+
+      // Save the form
+
+      const save_user_body = {
+
+        email: email,
+        firstName: firstName,
+        lastName: lastName,
+        aboutMe: aboutMe,
+        apiToken: apiToken,
+        password: !firstPassState.valueOf() ? currentPassState.text : firstPassState
+
+      };
+
+      let save_user = await SendRequest('http://localhost:5000/auth/saveprofile', 'POST', save_user_body);
+
+      let save_user_data = await save_user.text();
+
+      await setFormState({ message: JSON.parse(save_user_data).message, valid: true });
+
+      // Re-authenticate user with a freshly retrieved data
+      
+      await loginUser(email, save_user_body.password);
+      
+      let user_is_authenticated = await GetAuthenticatedUser();
+        if (JSON.parse(user_is_authenticated).error === true) {
+          history.push('/auth/index');
           return;
         }
 
-        setPasswordError({ message: 'Password successfully submitted' , error: false});
-      }else{
-        setPasswordError({ message: 'Current password is wrong' , error: true});
-        return;
-      }
+          // User Data
+          const user = user_is_authenticated;
+          const user_data = JSON.parse(JSON.parse(user).message);
+          const user_error = JSON.parse(JSON.parse(user).error);
+          const user_object = { data: user_data, error: user_error };
+      
+      await setUser(user_object);
+
+    }else{
+      await setFormState({ message: 'Current password is wrong', valid: false });
     }
-
-    // Save the form
-
-    let save_user = await SendRequest('http://localhost:5000/auth/saveprofile', 'POST', {
-
-      email: email,
-      firstName: firstName,
-      lastName: lastName,
-      aboutMe: aboutMe,
-      apiToken: apiToken,
-      password: !firstPassState.valueOf() ? user.data.password : firstPassState
-
-    });
-
-    let save_user_data = await save_user.text();
-
-    await setFormState({ message: JSON.parse(save_user_data).message, valid: true });
-
-    // Re-authenticate user with a freshly retrieved data 
 
     setShowSpinnerState(false);
   }
@@ -382,6 +411,25 @@ const Profile = () => {
                 </CardBody>
               </Card>
             :
+            formState.valid === false && formState.message.valueOf()
+            ?
+            <Card className="bg-secondary shadow">
+                <CardHeader className="bg-white border-0">
+                  <Row className="align-items-center">
+                    <Col xs="8">
+                      <h3 className="text-danger mb-0">Submission Failed</h3>
+                    </Col>
+                  </Row>
+                </CardHeader>
+                <CardBody>
+                  <Form>
+                    <h6 className="heading-small text-muted mb-4">
+                      {formState.message}
+                    </h6>
+                  </Form>
+                </CardBody>
+              </Card>
+            : 
             null
           }
           <br/>
