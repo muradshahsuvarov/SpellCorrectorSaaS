@@ -57,7 +57,7 @@ const Profile = () => {
   const [aboutMeState, setAboutMeState] = useState({ name: '', error: false, error_message: ''});
   const [apiTokenBtnText, setApiTokenBtnText] = useState('Copy to clipboard');
   const [aboutMeLength, setAboutMeLength] = useState(0);
-  const [apiTokenText, setApiTokenText] = useState('');
+  const [apiTokenText, setApiTokenText] = useState({ text: '', value: ''});
   const [showSpinnerState, setShowSpinnerState] = useState(false);
   const [passStrengthState, setPassStrengthState] = useState('Very Weak');
   const [passwordErrorState, setPasswordError] = useState({ message: '', error: false });
@@ -186,7 +186,7 @@ const Profile = () => {
         await setLastNameState({ name: user_object.data.lastname, error: false, error_message: ''});
         await setAboutMeState({ name: user_object.data.description, error: false, error_message: ''});
         await setAboutMeLength(aboutMeState.name.length);
-        await setApiTokenText(user_object.data.api_token);
+        await setApiTokenText({ text: user_object.data.api_token, value: user_object.data.api_token });
     }
 
     RedirectIfUserIsAuthenticated();
@@ -197,7 +197,7 @@ const Profile = () => {
   async function generateApiToken(e) {
     let api_token = await SendRequest('http://localhost:5000/auth/generatetoken', 'GET');
     let api_token_data = await api_token.text();
-    await setApiTokenText(JSON.parse(api_token_data).token);
+    await setApiTokenText({ text: JSON.parse(api_token_data).token, value: JSON.parse(api_token_data).token });
   }
   
   function copyToClipboard(e) {
@@ -229,7 +229,7 @@ const Profile = () => {
     const firstName = firstNameState.name;
     const lastName = lastNameState.name;
     const aboutMe = aboutMeState.name;
-    const apiToken = apiTokenText.valueOf();
+    const apiToken = apiTokenText.value;
 
     let passwords_equal = await SendRequest('http://localhost:5000/auth/passwordsequal', 'POST', {
       password: currentPassState.text
@@ -633,7 +633,7 @@ const Profile = () => {
                               <Input
                                 className="form-control-alternative"
                                 placeholder="Your API Token"
-                                value={apiTokenText}
+                                value={apiTokenText.text}
                                 rows="4"
                                 disabled={true}
                                 ref={apiTextRef}

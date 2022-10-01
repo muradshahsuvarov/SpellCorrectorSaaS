@@ -40,7 +40,7 @@ router.post('/request-user', async (req, res, next) => {
 
     const created_at_date = current_date.getFullYear() + "-" + month + "-" + day + " " + hours + ":" + minutes + ":" + seconds;
 
-    const token = randomtoken.generate(50, "abcdefghijklmnopqrstuvwxzyABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+    const token = randomtoken.generate(200, "abcdefghijklmnopqrstuvwxzyABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
 
     const account_verification_object = {
 
@@ -61,7 +61,7 @@ router.post('/request-user', async (req, res, next) => {
         lastname: Joi.string().min(5).max(40).required(),
         email: Joi.string().min(5).max(50).required(),
         password: Joi.string().min(10).max(40).required(),
-        token: Joi.string().min(5).max(100).required(),
+        token: Joi.string().min(5).max(200).required(),
         verified: Joi.boolean().required(),
         created_at: Joi.string().min(19).max(19).required(),
         updated_at: Joi.string().min(0).max(19)
