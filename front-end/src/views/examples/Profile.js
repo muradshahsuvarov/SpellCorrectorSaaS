@@ -66,6 +66,7 @@ const Profile = () => {
   const [secPassState, setSecPassState] = useState('');
   const [saveButtonState, setSaveButtonState] = useState({ message: '', error: false });
   const [formState, setFormState] = useState({ message: '', valid: false });
+  const [image, setImage] = useState();
 
   // React Reference Hooks
   const apiTextRef = useRef();
@@ -315,6 +316,21 @@ const Profile = () => {
     setSecPassState(e.target.value);
   }
 
+
+  function imgSelectHandler(e) {
+
+    if (e.target.files.length !== 0) {
+      setImage(e.target.files[0]);
+    }
+    
+  }
+
+  function uploadImage(e) {
+
+    document.getElementById('selectFile').click();
+
+  }
+
   return (
     <>
       <UserHeader user={user} />
@@ -326,11 +342,13 @@ const Profile = () => {
               <Row className="justify-content-center">
                 <Col className="order-lg-2" lg="3">
                   <div className="card-profile-image">
-                    <a href="#pablo" onClick={(e) => e.preventDefault()}>
+                    <a onClick={(e) => e.preventDefault()}>
                       <img
+                        width={200}
+                        height={200}
                         alt="..."
                         className="rounded-circle"
-                        src={require("../../assets/img/theme/team-4-800x800.jpg")}
+                        src={ image ? URL.createObjectURL(image) : require("../../assets/img/theme/team-4-800x800.jpg") }
                       />
                     </a>
                   </div>
@@ -341,12 +359,20 @@ const Profile = () => {
                   <Button
                     className="float-right"
                     color="default"
-                    href="#pablo"
                     onClick={(e) => e.preventDefault()}
                     size="sm"
                   >
                     Message
                   </Button>
+                  <Button
+                    className="float-right"
+                    color="info"
+                    onClick={uploadImage}
+                    size="sm"
+                  >
+                    Change Picture
+                  </Button>
+                  <input id="selectFile" type="file" style={{display: "none"}} accept='.png,.jpg,.jpeg' onChange={imgSelectHandler}></input>
                 </div>
               </CardHeader>
               <CardBody className="pt-0 pt-md-4">
